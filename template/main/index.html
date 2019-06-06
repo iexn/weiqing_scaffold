@@ -1,0 +1,11 @@
+{template 'base/common-header'}
+
+
+<button id="btn" class="btn">ajax</button>
+<script>
+    $('#btn').on('click', function() {
+        $.post('{php echo aurl("sysinfo", "w7")}')
+    })
+</script>
+
+{template 'base/common-footer'}

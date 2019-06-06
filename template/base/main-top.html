@@ -1,0 +1,59 @@
+{php $frames = buildframes(FRAME);_calc_current_frames($frames);}
+<div id="user-nav" class="navbar navbar-inverse">
+    <ul class="nav">
+        <!-- <li class="dropdown" id="profile-messages"><a title="" href="http://www.jq22.com/demo/matrix-admin-141119230429/grid.html#"
+                data-toggle="dropdown" data-target="#profile-messages" class="dropdown-toggle"><i class="fa fa-user"></i>
+                <span class="text">Welcome User</span><b class="caret"></b></a>
+            <ul class="dropdown-menu">
+                <li><a href="http://www.jq22.com/demo/matrix-admin-141119230429/grid.html#"><i class="fa fa-user"></i>
+                        My Profile</a></li>
+                <li class="divider"></li>
+                <li><a href="http://www.jq22.com/demo/matrix-admin-141119230429/grid.html#"><i class="fa fa-check"></i>
+                        My Tasks</a></li>
+                <li class="divider"></li>
+                <li><a href="http://www.jq22.com/demo/matrix-admin-141119230429/login.html"><i class="fa fa-key"></i>
+                        Log Out</a></li>
+            </ul>
+        </li> -->
+    {if !empty($_W['uid'])}
+        {php global $top_nav}
+        {php $nav_top_fold=array()}
+        {php $nav_top_tiled=array()}
+        {php $nav_custom=array()}
+        {php $platform_url=url('account/display')}
+        {php $nav_top_fold[] = array('name' => 'all', 'title'=>'全部', 'type' => 'all', 'url' => $platform_url)}
+        {loop $top_nav $nav}
+            {if in_array($nav['name'], array(ACCOUNT_TYPE_SIGN, WXAPP_TYPE_SIGN, WEBAPP_TYPE_SIGN, PHONEAPP_TYPE_SIGN, XZAPP_TYPE_SIGN))}
+                {php $nav_top_fold[]=$nav}
+            {elseif in_array($nav['name'], array('platform', 'module', 'system', 'site'))}
+                {php $nav_top_tiled_system[]=$nav}
+            {elseif in_array($nav['name'], array('appmarket', 'store', 'help', 'advertisement'))}
+                {php $nav_top_tiled_other[]=$nav}
+            {elseif $nav['name']=='custom_help'}
+                {php $nav_top_help=$nav}
+            {else}
+                {php $nav_top_tiled_other[]=$nav}
+            {/if}
+        {/loop}
+        
+        {loop $nav_top_tiled_system $nav}
+        <li class=""><a title="{$nav['title']}" href="{if empty($nav['url'])}{php echo url('home/welcome/' . $nav['name']);}{else}{$nav['url']}{/if}"
+                target="_blank">
+                <span class="text">{$nav['title']}</span></a></li>
+        {/loop}
+
+        <li><a href="{php echo url('module/default-entry', ['m'=>MNAME,'version_id'=>0])}" class="text-over">
+            <i class="fa fa-cog"></i> 默认入口</a></li>
+        <li><a href="{php echo url('module/permission', ['m'=>MNAME,'version_id'=>0])}" class="text-over">
+            <i class="fa fa-cog"></i> 权限设置</a></li>
+            
+        <!-- <li class=""><a title="" href="{php echo url('module/display')}"><i class="fa fa-sign-in-alt"></i>
+                <span class="text">返回微擎</span></a></li>
+        <li class=""><a title="" href="http://www.jq22.com/demo/matrix-admin-141119230429/grid.html#"><i class="fa fa-cog"></i>
+                <span class="text">Settings</span></a></li>
+        <li class=""><a title="" href="http://www.jq22.com/demo/matrix-admin-141119230429/login.html"><i class="fa fa-share-alt"></i>
+                <span class="text">Logout</span></a></li> -->
+    
+    {/if}
+    </ul>
+</div>

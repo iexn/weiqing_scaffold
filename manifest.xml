@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns="http://www.we7.cc" versionCode="">
+	
+	<application setting='false'>
+		<name><![CDATA[【开发】微擎模块]]></name>
+
+		<identifie><![CDATA[w7_scaffold]]></identifie>
+
+		<version><![CDATA[2.3.2]]></version>
+
+		<ability><![CDATA[【开发】微擎模块]]></ability>
+
+		<type><![CDATA[activity]]></type>
+
+		<description><![CDATA[模块框架]]></description>
+
+		<author><![CDATA[iexn]]></author>
+
+		<url><![CDATA[]]></url>
+
+		<setting><![CDATA[]]></setting>
+
+	</application>
+
+	
+	<platform>
+		<rule embed="false" />
+
+		<rule embed="false" />
+
+	<supports>
+
+			<item type="app" />
+	</supports>
+
+	</platform>
+
+	
+	<bindings>
+
+		<menu>
+			<entry title="菜单1" do="active" state="et=1" direct="" />
+		</menu>
+
+	</bindings>
+
+	<install><![CDATA[]]></install>
+	<uninstall><![CDATA[]]></uninstall>
+	<upgrade><![CDATA[]]></upgrade>
+</manifest>

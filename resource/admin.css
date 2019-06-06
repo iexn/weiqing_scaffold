@@ -1,0 +1,26 @@
+body{min-width:1180px;position:relative;padding:0!important}
+.wsys-line{margin-top:15px}
+.wsys-title{width:160px;display:inline-block;text-align:right;padding-top:5px}
+.wsys-setting{padding-left:15px;display:inline-block;width:72%;vertical-align:top;word-wrap:no-wrap}
+.text-width-tiny{width:60px;display:inline-block}
+.text-width-small{width:120px;display:inline-block}
+.text-width-normal{width:180px;display:inline-block}
+input::-webkit-inner-spin-button,input::-webkit-outer-spin-button{-webkit-appearance:none!important}
+input[type=number]{-moz-appearance:textfield}
+.right-content{position:relative}
+td{vertical-align:middle!important}
+/* #form_search,.btn-group{margin-bottom:15px} */
+td{vertical-align:middle!important}
+td>div{margin:6px auto 6px}
+textarea.text-height-normal{height:120px;display:inline-block}
+.tab-content{margin-top:30px}
+.table th{text-align:left}
+.we7-page-tab{margin:0 0 30px}
+.nav{margin-bottom:30px}
+.dropdown.msg .dropdown-menu{width:300px;height:500px;overflow:hidden;color:#4c4c4c;padding:0;right:0;left:auto}
+.dropdown.msg .dropdown-menu .top{padding:0 10px;line-height:50px;border-bottom:1px solid #e7e7eb}
+.dropdown.msg .dropdown-menu .msg-list-container{padding:0 10px;height:437px;overflow-y:auto}
+.dropdown.msg .dropdown-menu .item{font-size:12px;padding:10px 0}
+.dropdown.msg .dropdown-menu .item+.item{border-top:1px solid #e7e7eb}
+.dropdown.msg .dropdown-menu .item .info{color:#999;margin-bottom:10px}
+.nav>li>a:focus{background-color:inherit}

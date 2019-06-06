@@ -1,0 +1,10 @@
+<div id="header">
+    <h1 style="font-size:16px;">
+        <img src="{php echo tomedia("addons/".$_W['current_module']['name']."/icon.jpg")}" style="height:30px;width:30px;vertical-align: top;">
+        <span style="line-height:30px;vertical-align:text-bottom;padding-left:5px;color:rgb(228, 228, 228)">{$_W['current_module']['title']}</span>
+    </h1>
+</div>
+<!-- 兼容历史性问题：模块内获取不到模块信息$module的问题-start -->
+{if CRUMBS_NAV == 1}
+{php global $module;}
+{/if}

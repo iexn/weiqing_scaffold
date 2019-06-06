@@ -1,0 +1,8 @@
+<ol class="breadcrumb">
+    {if !empty($_W['bcs'])}
+    {php $bcs = explode('/', $_W['bcs'])}
+    {loop $bcs $bc}
+        <li><a href="javascript:;">{$bc}</a></li>
+    {/loop}
+    {/if}
+</ol>

@@ -1,0 +1,39 @@
+</div>
+</div>
+<div class="row-fluid" style="color:#ccc">
+
+    <div id="footer" class="span12">
+        &ensp;
+        {if !UNI_BRIDLE}
+        <span>&copy; 天津指尖云科技有限公司 <a href="http://www.onfinger.cn/">www.onfinger.cn</a></span>
+        {/if}
+        <span style="float: right">
+            
+            {if empty($_W['setting']['copyright']['footerleft'])}Powered by <a href="http://www.we7.cc"><b>微擎</b></a>
+            v{IMS_VERSION} &copy; 2014-2015 <a href="http://www.we7.cc">www.we7.cc</a>{else}{$_W['setting']['copyright']['footerleft']}{/if}
+
+            {if !empty($_W['setting']['copyright']['icp'])}<span>备案号：<a href="http://www.miitbeian.gov.cn" target="_blank">{$_W['setting']['copyright']['icp']}</a></span>{/if}
+
+            {if !empty($_W['setting']['copyright']['statcode'])}{$_W['setting']['copyright']['statcode']}{/if}
+            
+            {if empty($_W['setting']['copyright']['footerright'])}
+                &ensp;|&ensp;
+                <a href="http://www.we7.cc">微信开发</a>
+                &ensp;|&ensp;
+                <a href="http://s.we7.cc">微信应用</a>
+                &ensp;|&ensp;
+                <a href="http://bbs.we7.cc">微擎论坛</a>
+                &ensp;|&ensp;
+                <a href="http://s.we7.cc">联系客服</a>
+            {else}
+                {$_W['setting']['copyright']['footerright']}
+            {/if}
+        </span>
+    </div>
+
+</div>
+
+<ul class="typeahead dropdown-menu"></ul>
+</body>
+
+</html>

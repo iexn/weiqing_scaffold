@@ -1,0 +1,114 @@
+<div id="search" class="navbar navbar-inverse">
+    <ul class="nav">
+
+        <li>
+            <a href="javascript:location.reload();" id="dLabel" type="button">
+                <i class="fa fa-sync-alt"></i>
+                <span class="text">刷新页面</span>
+            </a>
+        </li>
+        
+        <li>
+            <a href="{php echo aurl('index', 'feedback')}" type="button">
+                <i class="fa fa-envelope"></i>
+                <span class="text">意见反馈</span>
+            </a>
+        </li>
+
+        {if IS_DEV === true}
+        <li class="dropdown">
+            <a href="javascript:;" id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fa fa-wrench"></i>
+                <span class="text">开发者工具</span>
+                <span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu pull-right" aria-labelledby="dLabel">
+                <li><a href="{php echo aurl('output_sql', 'dev')}" class="ajax-post confirm"><i class="fa fa-database"></i> 数据表结构导出</a></li>
+            </ul>
+        </li>
+        {/if}
+
+        {php $accounts_list = get_accounts_list()}
+        <li class="dropdown" id="profile-wechat"><a href="javascript:;"
+            data-toggle="dropdown" data-target="#profile-wechat" class="dropdown-toggle"><i class="fab fa-weixin"></i> {$_W['account']['name']}</span><b class="caret"></b></a>
+            {if !empty($accounts_list)}
+            <ul class="dropdown-menu pull-right module-related-info">
+                    {loop $accounts_list $account}
+                    <li>
+                        <a href="{php echo $account['url']}">
+                            {if !empty($account['app_name'])}<i class="fab fa-weixin"></i><span>{$account['app_name']}</span>{/if}
+                            {if !empty($account['app_name']) && !empty($account['wxapp_name'])}
+                            <i class="wi wi-plus"></i><span class="plus"></span>
+                            {/if}
+                            {if !empty($account['wxapp_name'])}<i class="wi wi-wxapp"></i><span>{$account['wxapp_name']}</span>{/if}
+                        </a>
+                    </li>
+                    {/loop}
+            </ul>
+            {/if}
+        </li>
+        
+        {php $frames_system = buildframes('system')}
+        {if empty($frames_system['section']['message']['is_display']) && $frames_system['section']['message']['is_display'] != '0'}
+        <li class="dropdown msg header-notice">
+            <a href="javascript:;"><i class="fa fa-bell"></i>
+                <span class="text">消息<span class="badge"></span></span></a>
+            <div class="dropdown-menu">
+                <div class="clearfix top">消息<a href="./index.php?c=message&a=notice" class="pull-right">查看更多</a></div>
+            </div>
+        </li>
+        {/if}
+
+        {if !empty($nav_top_help)}
+        <li>
+            <a title="" href="{if empty($nav_top_help['url'])}{php echo url('home/welcome/' . $nav_top_help['name']);}{else}{$nav_top_help['url']}{/if}"
+                target="_blank"><i class="fa fa-question-circle"></i>
+                <span class="text">帮助</span></a>
+        </li>
+        {/if}
+
+        <li class="dropdown" id="profile-messages"><a href="javascript:;"
+                data-toggle="dropdown" data-target="#profile-messages" class="dropdown-toggle"><i class="fa fa-user"></i>
+                <span class="text">{$_W['user']['username']}</span><b class="caret"></b></a>
+            <ul class="dropdown-menu pull-right">
+                <li><a href="{url 'user/profile'}"><i class="fa fa-user"></i>
+                    我的账号</a></li>
+                <li class="divider"></li>
+                {if permission_check_account_user('see_system_upgrade')}
+                <li><a href="{url 'cloud/upgrade'}" target="_blank"><i class="fa fa-check"></i>
+                    自动更新</a></li>
+                {/if}
+                {if permission_check_account_user('see_system_updatecache')}
+                <li><a href="{url 'system/updatecache'}" class="ajax-post confirm" data-confirm="确认更新缓存吗？" data-submit="submit"><i class="fa fa-key"></i>
+                    更新缓存</a></li>
+                {/if}
+                <li class="divider"></li>
+                {loop $nav_top_tiled_other $nav}
+                <li><a title="{$nav['title']}" href="{if empty($nav['url'])}{php echo url('home/welcome/' . $nav['name']);}{else}{$nav['url']}{/if}"
+                        target="_blank"><i class="fa fa-cog"></i>
+                        <span class="text">{$nav['title']}</span></a></li>
+                {/loop}
+                <li class="divider"></li>
+
+                {php $frames_site = buildframes('site')}
+                {php $workorder_nav=$frames_site['section']['workorder']['menu']['system_workorder']}
+                {if $workorder_nav['is_display']}
+                {if permission_check_account_user('see_workorder')}
+                <li>
+                    <a title="工单" href="{php echo url('system/workorder/display')}"
+                        target="_blank"><i class="fa fa-file-word"></i>
+                        <span class="text">工单</span></a>
+                </li>
+                {/if}
+                {/if}
+
+                <li class="divider"></li>
+                <li><a href="{url 'user/logout'}"><i class="fa fa-sign-in"></i>
+                    退出系统</a></li>
+                
+            </ul>
+        </li>
+
+        
+    </ul>
+</div>

@@ -1,0 +1,16 @@
+<div id="sidebar">
+    <ul>
+        {loop $menu['sidebar'] $m}
+        <li class="{$m['class']}">
+            <a href="{$m['url']}"><i class="fa fa-{$m['icon']}"></i><span>{$m['title']}</span></a>
+            {if !empty($m['_children'])}
+            <ul>
+                {loop $m['_children'] $child}
+                <li class="{$child['class']}"><a href="{$child['url']}"><span>{$child['title']}</span></a></li>
+                {/loop}
+            </ul>
+            {/if}
+        </li>
+        {/loop}
+    </ul>
+</div>

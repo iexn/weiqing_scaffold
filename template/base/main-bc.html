@@ -1,0 +1,11 @@
+<div class="content-header">
+    {if !empty($_W['bcs'])}
+    <div class="breadcrumb">
+        <!-- <a href="{php echo url('home/welcome/ext', ['m'=>MNAME])}"><i class="fa fa-home"></i> 主页</a> -->
+            {php $bcs = explode('/', $_W['bcs'])}
+            {loop $bcs $bc}
+            <a href="javascript:;" class="current">{$bc}</a>
+            {/loop}
+        </div>
+    {/if}
+</div>
