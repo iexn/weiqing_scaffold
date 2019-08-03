@@ -1,0 +1,210 @@
+{template 'base/common-header'}
+
+<div id="app" v-cloak>
+    <div class="app-header">
+        <div class="btn-group" role="group" aria-label="...">
+            <a href="javascript:;" class="btn btn-success" ref="page_update">新建活动</a>
+        </div>
+
+        <div class="form-inline" style="float: right">
+            <input type="text" name="title" class="form-control" ref="search_title" placeholder="搜索标题">
+            <button type="button" class="btn btn-warning" @click="search_list">搜索</button>
+        </div>
+    </div>
+
+    <form action="javascript:;" method="POST" id="form">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>活动名称</th>
+                    <th>开始时间</th>
+                    <th>结束时间</th>
+                    <th>排序</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(item, index) in datalist">
+                    <td class="media-middle">{{ item.uni_id }}</td>
+                    <td class="media-middle">{{ item.title }}</td>
+                    <td class="media-middle">{{ item.start_time }}</td>
+                    <td class="media-middle">{{ item.end_time }}</td>
+                    <td class="media-middle">{{ item.sort }}</td>
+                    <td class="media-middle">{{ item.status | status_name }}</td>
+                    <td class="media-middle">
+                        <a href="javascript:;" @click="page_update(item.ident)" class="label label-success">编辑</a>
+                        <a href="javascript:;" @click="page_register(item.ident)" class="label label-warning">报名列表</a>
+                        <a href="javascript:;" @click="page_caver(item.ident)" class="label label-primary">核销员列表</a>
+                        <a href="javascript:;" @click="api_toggle" v-if="item.status == 'on'" :data-ident="item.ident" :data-index="index" data-status='off' class="label label-default" v-html="'关闭'"></a>
+                        <a href="javascript:;" @click="api_toggle" v-else :data-ident="item.ident" :data-index="index" data-status='on' class="label label-info" v-html="'开启'"></a>
+                        <a href="javascript:;" @click="preview(item.ident)" class="label label-warning">预览</a>
+                        <a href="javascript:;" @click="api_remove" :data-ident="item.ident" class="label label-danger">删除</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div v-html="paginate" @click="turn"></div>
+    </form>
+    <div class="modal fade" tabindex="-1" role="dialog" id="preview_modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">预览活动</h4>
+                </div>
+                <div class="modal-body" style="text-align:center">
+                    <p id="preview_qrcode"></p>
+                    <p class="help-block">或访问以下地址进入活动</p>
+                    <p><a href="javascript:;">{{ preview_url }}</a></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script data-done="hide">
+    require(['admin'], function (Admin) {
+        var $vm = new Admin.vue({
+            data: {
+                datalist: [],
+                paginate: '',
+                page: 1,
+                size: 10,
+                preview_url: '',
+                st: null
+            },
+            mounted: function () {
+                // 初始化内容
+                this.$refs.page_update.href = Admin.url('update');
+                // 加载列表
+                this.getList();
+                // 删除多余的script标签
+                Admin.script.hide();
+            },
+            methods: {
+                page_update: function (ident) {
+                    location.href = Admin.url('update', {ident:ident});
+                },
+                page_register: function (ident) {
+                    location.href = Admin.url('register', {s:ident});
+                },
+                page_caver: function (ident) {
+                    location.href = Admin.url('caver', {s:ident});
+                },
+                api_toggle: function (e) {
+                    var _this   = this;
+                    var ident   = e.target.getAttribute('data-ident');
+                    var status  = e.target.getAttribute('data-status');
+                    var index   = e.target.getAttribute('data-index');
+                    var loading = Admin.loading(e.target);
+
+                    this.$http.post(Admin.url('toggle'), {
+                        ident: ident,
+                        status: status
+                    }).then(function (response) {
+                        var result = response.data;
+                        loading.hide(function () {
+                            if (result.errno == 0) {
+                                _this.datalist[index].status = status;
+                            } else {
+                                Admin.xalert(result.message, false);
+                            }
+                        });
+                    })
+                },
+                api_remove: function (e) {
+                    if (!confirm('确定删除吗？')) {
+                        return false;
+                    }
+                    var _this = this;
+                    var ident = e.target.getAttribute('data-ident');
+                    var loading = Admin.loading(e.target);
+                    this.$http.post(Admin.url('remove'), {
+                        ident: ident
+                    }).then(function (response) {
+                        var result = response.data;
+                        loading.hide(function () {
+                            Admin.xalert(result.message, result.errno == 0, function (is_success) {
+                                if (is_success) _this.getList();
+                            });
+                        });
+                    })
+                },
+                getList: function (callback) {
+                    var ban = Admin.ban();
+                    this.$http.post(Admin.url('getList'), {
+                        page: this.page,
+                        size: this.size,
+                        title: this.$refs.search_title.value
+                    }).then(function (response) {
+                        var result = response.data;
+                        var list = result.data.list,
+                            paginate = result.data.paginate;
+
+                        ban.hide();
+
+                        if (list.length == 0 && this.page != 1) {
+                            this.page = 1;
+                            this.getList();
+                            return false;
+                        }
+                        this.datalist.length = 0;
+                        
+                        // for (var i in list) {
+                            this.datalist.push(...list);
+                        // }
+                        this.paginate = paginate;
+                        callback && callback();
+                        
+                    });
+                },
+                turn: function (e) {
+                    // 此处必须使用微擎生成的翻页html，或每个a标签必须包含page或data-page属性 ，值为页数
+                    var turn_page = e.target.getAttribute('data-page') || e.target.getAttribute('page');
+                    if (turn_page) {
+                        this.page = turn_page
+                        this.getList();
+                    }
+                },
+                preview: function (ident) {
+                    var _this = this;
+                    var share_url = '';
+                    if (Admin.sysinfo.config.share_url != '') {
+                        var share_urls = Admin.sysinfo.config.share_url.split('\r\n');
+                        share_url = share_urls[0];
+                    }
+                    this.preview_url = Admin.app_url('p/', {
+                        s: ident
+                    }, '', share_url);
+                    require(['jquery.qrcode'], function () {
+                        $('#preview_qrcode').empty().qrcode(_this.preview_url);
+                    });
+                    Admin.$('#preview_modal').modal('show');
+                },
+                search_list: function () {
+                    this.getList();
+                }
+            },
+            filters: {
+                status_name: function (name) {
+                    if (name == 'on') {
+                        return '开启';
+                    }
+                    return '关闭';
+                },
+                media: function (src) {
+                    return Admin.util.tomedia(src);
+                },
+                qrcode: function (value) {
+
+                }
+            }
+        });
+        $vm.$mount('#app');
+    });
+</script>
+{template 'base/common-footer'}

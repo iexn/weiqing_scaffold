@@ -3,7 +3,7 @@ namespace wsys\logic;
 
 use wsys\model\OrderModel;
 
-class OrderLogic extends CommonLogic
+class OrderLogic extends CommonConditionLogic
 {
     protected $model_class = 'Order';
 

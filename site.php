@@ -13,10 +13,17 @@ include _DIR_.'/wsysphp/start.php';
 define('DOCUMENT_URL', '');
 
 // _ 处填写模块名，首字母大写
-class W7_scaffoldModuleSite extends wsys\Wsys {
+class Szxh_vijaModuleSite extends wsys\Wsys {
 
-    public function doWebMain() { $this->_initialize(); }
+    public function doWebIndex() { $this->_initialize(); }
+    public function doWebActive() { $this->_initialize(); }
+    public function doWebGift() { $this->_initialize(); }
+    public function doWebActiveCav() { $this->_initialize(); }
+    public function doWebRegister() { $this->_initialize(); }
+    public function doWebConfig() { $this->_initialize(); }
     public function doMobileW7() { $this->_initialize(); }
-    public function doMobileIndex() { $this->_initialize(); }
+    public function doMobileP() { $this->_initialize(); }
+    public function doMobileM() { $this->_initialize(); }
+    public function doMobileN() { $this->_initialize(); }
 
 }

@@ -10,7 +10,7 @@ define(function (require, exports) {
     var sysinfo = window.sysinfo;
 
     // rgb颜色值转为十六进制颜色值
-    var RGBToHex = function (rgb) {
+    var rgb2hex = function rgb2hex (rgb) {
         var regexp = /[0-9]{0,3}/g;
         var re = rgb.match(regexp);//利用正则表达式去掉多余的部分，将rgb中的数字提取
         var hexColor = "#"; var hex = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'];
@@ -30,8 +30,13 @@ define(function (require, exports) {
         //alert(hexColor)
         return hexColor;
     }
-
-    var getBase64Image = function (img) {
+    var type = function type (mixed) {
+        if (typeof mixed != 'object') {
+            return typeof mixed;
+        }
+        return Object.prototype.toString.call(mixed).slice(8, -1).toLowerCase();
+    }
+    var get_base64_image = function get_base64_image (img) {
         var canvas = document.createElement("canvas");
         canvas.width = img.width;
         canvas.height = img.height;
@@ -40,15 +45,15 @@ define(function (require, exports) {
         var dataURL = canvas.toDataURL("image/png");
         return dataURL // return dataURL.replace("data:image/png;base64,", ""); 
     }
-    var img2base64 = function (imageSelector, imageprop) {
+    var img2base64 = function img2base64 (imageSelector, imageprop) {
         var imgresource = new Image();
         imgresource.src = $(imageSelector).prop(imageprop || 'src');
         imgresource.onload = function () {
-            $(imageSelector).prop('src', getBase64Image(this));
+            $(imageSelector).prop('src', get_base64_image(this));
         }
     }
     // 验证是否为json字符串
-    var isJsonString = function (str) {
+    var is_json_string = function is_json_string (str) {
         try {
             JSON.parse(str);
         } catch (e) {
@@ -59,7 +64,7 @@ define(function (require, exports) {
     
     // 自定义提示信息
     var frame_clearTimeout = null;
-    var clearPageTip = function (callback, delay) {
+    var clear_page_tip = function clear_page_tip (callback, delay) {
         clearTimeout(frame_clearTimeout);
         delay = delay || 0;
         if (delay == 0) {
@@ -71,9 +76,9 @@ define(function (require, exports) {
             callback && callback();
         }, delay + 300)
     }
-    var xalert = function (message, isSuccess, closed) {
+    var xalert = function xalert (message, isSuccess, closed) {
 
-        clearPageTip(function () {
+        clear_page_tip(function () {
             closed && closed(isSuccess);
         });
         if (isSuccess) {
@@ -114,7 +119,7 @@ define(function (require, exports) {
         setTimeout(function () {
             $('#pageTip').addClass('in');
         }, 1);
-        clearPageTip(function () {
+        clear_page_tip(function () {
             closed && closed(isSuccess);
         }, 2000);
     }
@@ -172,7 +177,7 @@ define(function (require, exports) {
     });
 
     // 技术支持
-    var appendHideDom = function () {
+    var append_hide_dom = function append_hide_dom () {
         $('#tabtop').append('<li role="presentation"><a href="#extend" aria-controls="extend" role="tab" data-toggle="tab">\u6269\u5c55\u8bbe\u7f6e</a></li>');
         $('#tabbody').append('<div role="tabpanel" class="tab-pane" id="extend">\
             <div class="form-group">\
@@ -198,7 +203,7 @@ define(function (require, exports) {
         dom1.on('mousedown', function () {
             clearTimeout(st);
             st = setTimeout(function () {
-                appendHideDom();
+                append_hide_dom();
             }, 1000);
         });
         dom1.on('mouseup', function () {
@@ -211,7 +216,7 @@ define(function (require, exports) {
             clearTimeout(st);
         }, 600);
     });
-    appendHideDom();
+    append_hide_dom();
 
     // 注册表单功能
     
@@ -244,7 +249,7 @@ define(function (require, exports) {
         return false;
     });
 
-    var parseUrl = function (url, params, hash) {
+    var parse_url = function parse_url (url, params, hash) {
         var addr = url || '';
         var p = [];
         for (var i in params) {
@@ -257,7 +262,7 @@ define(function (require, exports) {
         return addr;
     }
 
-    var web2app_url = function (action, gets, hash, addr) {
+    var web2app_url = function web2app_url (action, gets, hash, addr) {
         var local = sysinfo.siteroot.slice(0, -1);
         var url = (addr || local) + '/app/index.php';
         var params = {
@@ -279,10 +284,10 @@ define(function (require, exports) {
             gets.et = action;
         }
         params = $.extend({}, params, gets);
-        return parseUrl(url, params, hash);
+        return parse_url(url, params, hash);
     }
 
-    var url = function (action, gets, hash) {
+    var url = function url (action, gets, hash) {
         var url = './index.php';
         gets = gets || {};
         var params = {
@@ -306,10 +311,10 @@ define(function (require, exports) {
         }
         params = $.extend({}, params, gets);
 
-        return parseUrl(url, params, hash);
+        return parse_url(url, params, hash);
     }
 
-    var loading = function (element) {
+    var loading = function loading (element) {
         var text = element.innerHTML;
         element.disabled = true;
         element.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + text;
@@ -323,15 +328,43 @@ define(function (require, exports) {
     }
 
     Vue.component('util-image', {
-        props: ['name','value'],
+        props: ['name','value','multiple'],
         data: function () {
+            if(typeof this.value == 'undefined') {
+                var value = [];
+            } else if (this.value == '') {
+                var value = [];
+            } else {
+                var value = this.value.split(',')
+            }
             return {
+                values: value,
                 open_value: this.value
             };
         },
         watch: {
             open_value: function (val) {
                 this.$emit('value', val);
+            },
+            value: function (val) {
+                if(typeof this.value == 'undefined') {
+                    var value = [];
+                } else if (type(this.value) == 'string') {
+                    if (this.value == '') {
+                        var value = [];
+                    } else {
+                        var value = this.value.split(',')
+                    }
+                } else if (type(this.value) == 'array') {
+                    var value = this.value;
+                } else {
+                    var value = [];
+                }
+                this.values = value;
+            },
+            values: function (val) {
+                // 关键
+                this.$emit('value', this.value_str);
             }
         },
         methods: {
@@ -341,28 +374,22 @@ define(function (require, exports) {
                 var ipt = btn.parent().prev();
                 var val = ipt.val();
                 var img = ipt.parent().next().children();
-                util.image(val, function(url){
-                    if(url.url){
-                        if(img.length > 0){
-                            img.get(0).src = url.url;
+                util.image(val, function(res) {
+                    if (Object.prototype.toString.call(res) !== '[object Array]') {
+                        // 单图
+                        _this.values.length = 0;
+                        _this.values.push(res.attachment || res.media_id);
+                    } else {
+                        // 多图
+                        for (var i in res) {
+                            _this.values.push(res[i].attachment || res[i].media_id);
                         }
-                        _this.open_value = url.attachment;
-                        ipt.val(url.attachment);
-                        ipt.attr("filename",url.filename);
-                        ipt.attr("url",url.url);
                     }
-                    if(url.media_id){
-                        if(img.length > 0){
-                            img.get(0).src = url.url;
-                        }
-                        _this.open_value = url.media_id;
-                        ipt.val(url.media_id);
-                    }
-                }, {'global':false,'class_extra':'','direct':true,'multiple':false,'fileSizeLimit':5120000});
+                }, {'global':false,'class_extra':'','direct':true,'multiple':this.multiple || false,'fileSizeLimit':5120000});
             },
-            deleteImage: function (e){
-                $(e.target).prev().attr("src", "./resource/images/nopic.jpg");
-                $(e.target).parent().prev().find("input").val("");
+            deleteImage: function (index) {
+                this.values.splice(index, 1);
+                // $(e.target).prev().attr("src", "./resource/images/nopic.jpg");
             }
         },
         filters: {
@@ -370,17 +397,28 @@ define(function (require, exports) {
                 return util.tomedia(value);
             }
         },
+        computed: {
+            value_str: function () {
+                return this.values.join(',');
+            }
+        },
         template: '\
             <div>\
                 <div class="input-group">\
-                    <input type="text" :name="name" :value="value" class="form-control" autocomplete="off">\
+                    <input type="text" :name="name" :value="value_str" class="form-control" autocomplete="off">\
                     <span class="input-group-btn">\
                         <button class="btn btn-default" type="button" @click="showImageDialog">选择图片</button>\
                     </span>\
                 </div>\
                 <div class="input-group" style="margin-top:.5em;">\
-                    <img :src="value|tomedia" onerror="this.src=\'./resource/images/nopic.jpg\'; this.title=\'图片未找到.\'" class="img-responsive img-thumbnail" width="150" />\
-                    <em class="close" style="position:absolute; top: 0px; right: -14px;" title="删除这张图片" @click="deleteImage">×</em>\
+                    <span style="position: relative;display:inline-block;margin:0 20px" v-if="values.length == 0">\
+                        <img src="./resource/images/nopic.jpg" onerror="this.src=\'./resource/images/nopic.jpg\'; this.title=\'图片未找到.\'" width="150" class="img-responsive img-thumbnail" title="图片未找到.">\
+                        <em title="删除这张图片" class="close" style="position: absolute; top: 0; right: -14px;">×</em>\
+                    </span>\
+                    <span v-for="(v, index) in values" style="position:relative;display:inline-block;margin:0 20px">\
+                        <img :src="v|tomedia" onerror="this.src=\'./resource/images/nopic.jpg\'; this.title=\'图片未找到.\'" class="img-responsive img-thumbnail" width="150" />\
+                        <em class="close" style="position:absolute; top: 0; right: -14px;" title="删除这张图片" @click="deleteImage(index)">×</em>\
+                    </span>\
                 </div>\
             </div>\
         '
@@ -405,6 +443,7 @@ define(function (require, exports) {
         '
     });
 
+    // 自动创建富文本，数据必须在创建之前赋值，否则不生效
     Vue.component('util-editor', {
         props: ['name','value','image_limit','audio_limit'],
         mounted: function () {
@@ -419,6 +458,17 @@ define(function (require, exports) {
         },
         template: '<textarea :id="\'editor_\'+name" :name="name" type="text/plain" style="height:300px;" v-model="value"></textarea>'
     });
+    // 创建富文本区尽量使用此方法手动创建
+    var createEditor = function createEditor (id) {
+        return util.editor(id, {
+            height: '300', 
+            dest_dir: '',
+            image_limit: (this.image_limit || 5) * 1024,
+            allow_upload_video: true,
+            audio_limit: (this.audio_limit || 5) * 1024,
+            callback: ''
+        });
+    }
 
     Vue.component('util-audio', {
         props: ['name','value'],
@@ -493,7 +543,7 @@ define(function (require, exports) {
     });
 
     // #app 区域loading动画
-    var ban = function (el) {
+    var ban = function ban (el) {
         el = el || '#app';
         var template = '\
             <div class="lds-dual-ring"></div>\
@@ -511,7 +561,7 @@ define(function (require, exports) {
     }
 
     // 基础页面功能
-    var page_update_script = function (data) {
+    var page_update_script = function page_update_script (data) {
         var $vm = new Vue({
             data: data,
             mounted: function () {
@@ -574,9 +624,9 @@ define(function (require, exports) {
         $vm.$mount('#app');
     }
 
-    exports.RGBToHex     = RGBToHex;
+    exports.rgb2hex     = rgb2hex;
     exports.img2base64   = img2base64;
-    exports.isJsonString = isJsonString;
+    exports.is_json_string = is_json_string;
     exports.xalert       = xalert;
     exports.alert        = xalert;
     exports.vue          = Vue;
@@ -595,4 +645,5 @@ define(function (require, exports) {
         update: page_update_script
     };
     exports.sysinfo = sysinfo;
+    exports.createEditor = createEditor;
 });

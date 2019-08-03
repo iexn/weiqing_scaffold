@@ -1,0 +1,276 @@
+{template 'base/common-header'}
+<style>
+    .table>tbody>tr>td{vertical-align:middle}
+    .modal-body{min-height:20rem}
+</style>
+<div id="app" v-cloak>
+
+    <div class="app-header">
+        <div class="btn-group">
+            <a href="javascript:;" class="btn btn-warning" @click="export_excel">导出订单</a>
+        </div>
+
+        <div class="form-inline" style="float: right">
+            <input type="text" name="title" class="form-control" ref="search_title" placeholder="活动名称">
+            <button type="button" class="btn btn-warning" @click="search_list">搜索</button>
+        </div>
+    </div>
+    
+    <form action="javascript:;" method="POST" id="form">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>报名活动</th>
+                    <th>报名信息</th>
+                    <th>统计</th>
+                    <th>报名时间</th>
+                    <th>核销状态</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(item, index) in datalist">
+                    <td class="media-middle">
+                        <p>活动名称：<a :href="item.active_ident | to_active">{{ item.title }}</a></p>
+                        <p>报名编号：{{ item.ident }}</p>
+                        <p>报名人：<img :src="item.avatar" width="32"> {{ item.nickname }}</p>
+                    </td>
+                    <td>
+                        <p v-for="jim in item.jim">{{ jim.name }}：{{ jim.value }}</p>
+                    </td>
+                    <td class="media-middle">
+                        <p>获赞数：{{ item.gift_score }}</p>
+                        <p>获得价值：￥ {{ item.gift_amount }}</p>
+                    </td>
+                    <td class="media-middle">{{ item.create_time }}</td>
+                    <td class="media-middle">{{ item.cav_status_name }}</td>
+                    <td class="media-middle">
+                        <a href="javascript:;" class="label label-info" @click="to_rewardto_log(item.ident)">送礼记录</a>
+                        <a href="javascript:;" class="label label-warning" @click="to_rewardto(item.ident)">个人排行榜</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="text-center" v-if="datalist.length == 0">暂无数据</div>
+        <div v-html="paginate" @click="turn"></div>
+    </form>
+    
+    <div class="modal fade" tabindex="-1" role="dialog" id="rewardto_log">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">送礼记录</h4>
+                </div>
+                <div class="modal-body">
+                    <table class="table" v-if="rewardto_log_list.length > 0">
+                        <tr>
+                            <th>送礼人</th>
+                            <th>礼物</th>
+                            <th>时间</th>
+                            <th>价值</th>
+                        </tr>
+                        <tr v-for="rewardto in rewardto_log_list">
+                            <td>{{ rewardto.name }}</td>
+                            <td>【{{ rewardto.gift_name }}】* {{ rewardto.gift_total }}</td>
+                            <td>{{ rewardto.rewardto_time }}</td>
+                            <td>￥ {{ rewardto.gift_amount }}</td>
+                        </tr>
+                    </table>
+                    <p v-else class="text-center" style="line-height:12rem">暂无数据</p>
+                    <div v-html="rewardto_log_paginate" @click="rewardto_log_turn"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal fade" tabindex="-1" role="dialog" id="rewardto">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">个人排行榜</h4>
+                </div>
+                <div class="modal-body">
+                    <table class="table" v-if="rewardto_list.length > 0">
+                        <tr>
+                            <th></th>
+                            <th>送礼人</th>
+                            <th>价值</th>
+                        </tr>
+                        <tr v-for="(rewardto, index) in rewardto_list">
+                            <td>{{ index + 1 }}</td>
+                            <td><img :src="rewardto.avatar" width="40">&emsp;{{ rewardto.name }}</td>
+                            <td>￥ {{ rewardto.gift_amount }}</td>
+                        </tr>
+                    </table>
+                    <p v-else class="text-center" style="line-height:12rem">暂无数据</p>
+                    <div v-html="rewardto_paginate" @click="rewardto_log_turn"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script data-done="hide">
+    require(['admin'], function (Admin) {
+        var $vm = new Admin.vue({
+            data: {
+                datalist: [],
+                paginate: '',
+                page: 1,
+                size: 10,
+                preview_url: '',
+                st: null,
+
+                rewardto_log_list: [],
+                rewardto_log_paginate: '',
+                rewardto_log_page: 1, 
+                rewardto_log_size: 10,
+                rewardto_log_register_ident: '',
+                
+                rewardto_list: [],
+                rewardto_paginate: '',
+                rewardto_page: 1, 
+                rewardto_size: 10,
+                rewardto_register_ident: '',
+            },
+            mounted: function () {
+                // 加载列表
+                this.getList();
+                // 删除多余的script标签
+                Admin.script.hide();
+            },
+            methods: {
+                page_update: function (ident) {
+                    location.href = Admin.url('Register/update', {ident:ident});
+                },
+                getList: function (callback) {
+                    var ban = Admin.ban();
+                    this.$http.post(Admin.url('Register/getList'), {
+                        page: this.page,
+                        size: this.size,
+                        title: this.$refs.search_title.value,
+                        s: Admin.sysinfo.gets.s || ''
+                    }).then(function (response) {
+                        var result = response.data;
+                        var list = result.data.list,
+                            paginate = result.data.paginate;
+
+                        ban.hide();
+
+                        if (list.length == 0 && this.page != 1) {
+                            this.page = 1;
+                            this.getList();
+                            return false;
+                        }
+                        this.datalist.length = 0;
+                        
+                        this.datalist.push(...list);
+                        this.paginate = paginate;
+                        callback && callback();
+                        
+                    });
+                },
+                turn: function (e) {
+                    // 此处必须使用微擎生成的翻页html，或每个a标签必须包含page或data-page属性 ，值为页数
+                    var turn_page = e.target.getAttribute('data-page') || e.target.getAttribute('page');
+                    if (turn_page) {
+                        this.page = turn_page
+                        this.getList();
+                    }
+                },
+                search_list: function () {
+                    this.getList();
+                },
+
+                to_rewardto_log: function (register_ident) {
+                    $('#rewardto_log').modal('show');
+                    this.rewardto_log_page = 1;
+                    this.rewardto_log_register_ident = register_ident;
+                    this.rewardto_log();
+                },
+                rewardto_log: function () {
+                    var loading = Admin.ban('#rewardto_log .modal-body');
+                    var _this = this;
+                    $.post(Admin.url('Register/rewardtolog'), {
+                        page: _this.rewardto_log_page,
+                        size: _this.rewardto_log_size,
+                        register_ident: _this.rewardto_log_register_ident
+                    }).then(function (res) {
+                        _this.rewardto_log_list.length = 0;
+                        _this.rewardto_log_list.push(...res.data.list);
+                        _this.rewardto_log_paginate = res.data.paginate;
+                        loading.hide();
+                    });
+                },
+                rewardto_log_turn: function (e) {
+                    var turn_page = e.target.getAttribute('data-page') || e.target.getAttribute('page');
+                    if (turn_page) {
+                        this.rewardto_log_page = turn_page
+                        this.rewardto_log();
+                    }
+                },
+                
+                to_rewardto: function (register_ident) {
+                    $('#rewardto').modal('show');
+                    this.rewardto_page = 1;
+                    this.rewardto_register_ident = register_ident;
+                    this.rewardto();
+                },
+                rewardto: function () {
+                    var loading = Admin.ban('#rewardto .modal-body');
+                    var _this = this;
+                    $.post(Admin.url('Register/rewardto'), {
+                        page: _this.rewardto_page,
+                        size: _this.rewardto_size,
+                        register_ident: _this.rewardto_register_ident
+                    }).then(function (res) {
+                        _this.rewardto_list.length = 0;
+                        _this.rewardto_list.push(...res.data.list);
+                        _this.rewardto_paginate = res.data.paginate;
+                        loading.hide();
+                    });
+                },
+                rewardto_turn: function (e) {
+                    var turn_page = e.target.getAttribute('data-page') || e.target.getAttribute('page');
+                    if (turn_page) {
+                        this.rewardto_page = turn_page
+                        this.rewardto();
+                    }
+                },
+                export_excel: function () {
+                    location.href = Admin.url('Register/export_excel', {
+                        title: this.$refs.search_title.value,
+                        s: Admin.sysinfo.gets.s
+                    });
+                }
+            },
+            filters: {
+                status_name: function (name) {
+                    if (name == 'on') {
+                        return '开启';
+                    }
+                    return '关闭';
+                },
+                media: function (src) {
+                    return Admin.util.tomedia(src);
+                },
+                to_active: function (val) {
+                    return Admin.url('Active/update', {
+                        ident: val
+                    })
+                }
+            }
+        });
+        $vm.$mount('#app');
+    })
+</script>
+{template 'base/common-footer'}

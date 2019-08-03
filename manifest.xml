@@ -2,17 +2,17 @@
 <manifest xmlns="http://www.we7.cc" versionCode="">
 	
 	<application setting='false'>
-		<name><![CDATA[【开发】微擎模块]]></name>
+		<name><![CDATA[影楼拓客宝]]></name>
 
-		<identifie><![CDATA[w7_scaffold]]></identifie>
+		<identifie><![CDATA[szxh_vija]]></identifie>
 
-		<version><![CDATA[2.3.2]]></version>
+		<version><![CDATA[2.0.4]]></version>
 
-		<ability><![CDATA[【开发】微擎模块]]></ability>
+		<ability><![CDATA[影楼拓客宝]]></ability>
 
 		<type><![CDATA[activity]]></type>
 
-		<description><![CDATA[模块框架]]></description>
+		<description><![CDATA[影楼拓客宝]]></description>
 
 		<author><![CDATA[iexn]]></author>
 
@@ -39,12 +39,15 @@
 	<bindings>
 
 		<menu>
-			<entry title="菜单1" do="active" state="et=1" direct="" />
+			<entry title="活动管理" do="active" state="et=1" direct="" />
+			<entry title="礼物管理" do="gift" state="et=1" direct="" />
+			<entry title="报名信息记录" do="register" state="et=1" direct="" />
+			<entry title="系统设置" do="config" state="et=1" direct="" />
 		</menu>
 
 	</bindings>
 
-	<install><![CDATA[]]></install>
+	<install><![CDATA[install.php]]></install>
 	<uninstall><![CDATA[]]></uninstall>
-	<upgrade><![CDATA[]]></upgrade>
+	<upgrade><![CDATA[upgrade.php]]></upgrade>
 </manifest>

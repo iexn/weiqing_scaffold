@@ -1,9 +1,12 @@
 <?php 
 namespace wsys\logic;
 
-use wsys\model\ActiveModel;
-
-class ActiveLogic extends CommonLogic
+class ActiveLogic extends CommonConditionLogic
 {
     protected $model_class = 'Active';
+
+    protected $action = [
+        'detail' => '@detail::'
+    ];
+
 }

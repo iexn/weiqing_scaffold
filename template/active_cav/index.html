@@ -1,0 +1,229 @@
+{template 'base/common-header'}
+
+
+<style type="text/css">
+#show_fans_list{position:absolute;z-index:10;background:white;border:1px solid #ccc;width:100%;height:300px;overflow:auto;left: 0;top: 33px;}
+#show_fans_list li{padding:15px;box-sizing:border-box;cursor:pointer;}
+#show_fans_list li:hover{background:#f0f0f0;}
+.search-async{position:relative;}
+</style>
+
+<div class="app-header clearfix">
+    <div class="input-group search-async" style="width: 280px;float:left">
+        <input type="text" class="form-control search-async-input" id="search_async_input" placeholder="搜索核销员" data-search-async-url="{php echo aurl('search','activeCav')}" name="user" autocomplete="off">
+        <input type="hidden" name="caver_openid" id="search_async_hidden">
+        <span class="input-group-btn">
+            <button class="btn btn-success" type="button" id="add_caver">添加核销员</button>
+        </span>
+    </div>
+</div>
+<div id="app" v-cloak>
+    <form action="javascript:;" method="POST" id="form">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>核销员ID</th>
+                    <th>核销员</th>
+                    <th>核销数量</th>
+                    <th>添加时间</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(item, index) in datalist">
+                    <td class="media-middle">{{ item.ident }}</td>
+                    <td class="media-middle"><img :src="item.avatar" width="32">&ensp;{{ item.nickname }}</td>
+                    <td class="media-middle">{{ item.cav_total }}</td>
+                    <td class="media-middle">{{ item.create_time }}</td>
+                    <td class="media-middle">
+                        <a href="javascript:;" @click="api_remove" :data-ident="item.ident" class="label label-danger">删除</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="text-center" v-if="datalist.length == 0">暂无核销员</div>
+        <div v-html="paginate" @click="turn"></div>
+    </form>
+    <div class="modal fade" tabindex="-1" role="dialog" id="preview_modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">预览活动</h4>
+                </div>
+                <div class="modal-body" style="text-align:center">
+                    <p id="preview_qrcode"></p>
+                    <p class="help-block">或访问以下地址进入活动</p>
+                    <p><a href="javascript:;">{{ preview_url }}</a></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script data-done="hide">
+    require(['admin'], function (Admin) {
+        var $vm = new Admin.vue({
+            data: {
+                datalist: [],
+                paginate: '',
+                page: 1,
+                size: 10,
+                preview_url: '',
+                st: null
+            },
+            mounted: function () {
+                // 加载列表
+                this.getList();
+                // 删除多余的script标签
+                Admin.script.hide();
+            },
+            methods: {
+                api_remove: function (e) {
+                    if (!confirm('确定删除吗？')) {
+                        return false;
+                    }
+                    var _this = this;
+                    var ident = e.target.getAttribute('data-ident');
+                    var loading = Admin.loading(e.target);
+                    this.$http.post(Admin.url('ActiveCav/remove'), {
+                        ident: ident
+                    }).then(function (response) {
+                        var result = response.data;
+                        loading.hide(function () {
+                            Admin.xalert(result.message, result.errno == 0, function (is_success) {
+                                if (is_success) _this.getList();
+                            });
+                        });
+                    })
+                },
+                getList: function (callback) {
+                    var ban = Admin.ban();
+                    this.$http.post(Admin.url('Active/caverList'), {
+                        page: this.page,
+                        size: this.size,
+                        s: Admin.sysinfo.gets.s
+                    }).then(function (response) {
+                        var result = response.data;
+                        var list = result.data.list,
+                            paginate = result.data.paginate;
+
+                        ban.hide();
+
+                        if (list.length == 0 && this.page != 1) {
+                            this.page = 1;
+                            this.getList();
+                            return false;
+                        }
+                        this.datalist.length = 0;
+                        
+                        // for (var i in list) {
+                            this.datalist.push(...list);
+                        // }
+                        
+                        callback && callback();
+                        
+                    });
+                },
+                turn: function (e) {
+                    // 此处必须使用微擎生成的翻页html，或每个a标签必须包含page或data-page属性 ，值为页数
+                    var turn_page = e.target.getAttribute('data-page') || e.target.getAttribute('page');
+                    if (turn_page) {
+                        this.page = turn_page
+                        this.getList();
+                    }
+                },
+            },
+            filters: {
+                media: function (src) {
+                    return Admin.util.tomedia(src);
+                },
+            }
+        });
+        $vm.$mount('#app');
+    
+
+        var gototimeout = null;
+        $('.search-async').find('.search-async-input').on('input', function (event) {
+            isSelected = false;
+            $('#search_async_check').remove();
+            $('#search_async_hidden').val();
+            clearTimeout(gototimeout);
+            var _this = this;
+            gototimeout = setTimeout(function () {
+                searchGoto(_this, event);
+            }, 600);
+        });
+        $('.search-async').find('.search-async-input').on('focus', function (event) {
+            if ($(this).val() != '') {
+                searchGoto(this, event);
+            }
+        });
+        $('#add_caver').on('click', function (e) {
+            var caver_openid = $('#search_async_hidden').val();
+            if(caver_openid == '') {
+                return Admin.alert('请在列表中选择用户', false);
+            }
+            var _loading = Admin.loading(e.target);
+            $.post(Admin.url('ActiveCav/addCaver'), {
+                openid: caver_openid,
+                s: Admin.sysinfo.gets.s || ''
+            }).then(function (res) {
+                _loading.hide(function () {
+                    if(res.errno != 0) {
+                        return Admin.alert(res.message, false);
+                    }
+                    Admin.alert('添加成功', true, function () {
+                        location.reload();
+                    });
+                });
+            }).fail(function () {
+                _loading.hide(function () {
+                    Admin.alert('网络异常，请重新尝试', false);
+                });
+            });
+        });
+        function searchGoto(_this, event) {
+            if($(_this).val().length < 2) {
+                removeAsyncList();
+                return false;
+            }
+            $.post($(_this).data('search-async-url'), {
+                value: $(_this).val()
+            }, function (res) {
+                
+                var data = res.data;
+                createAsyncList(res.data);
+            }, false);
+        }
+        function createAsyncList(data) {
+            var len = data.length;
+            removeAsyncList()
+            var asyncList = $('<ul id="show_fans_list">');
+            for (var i = 0; i < len; i++) {
+                asyncList.append($('<li>').attr('data-openid', data[i].openid).text(data[i].nickname).on('click', function () {
+                    checkAsyncItem(this);
+                }));
+            }
+            $('.search-async').append(asyncList);
+        }
+        function removeAsyncList() {
+            $('#show_fans_list').remove();
+        }
+        function checkAsyncItem(e) {
+            $('#search_async_hidden').val(e.getAttribute('data-openid'));
+            $('#search_async_input').val(e.innerHTML);
+            $('.search-async').append('<span class="fa fa-check" id="search_async_check" style="position:absolute;top:10px;right:-30px;color:green"></span>');
+            isSelected = true;
+            removeAsyncList();
+        }
+        window.onclick = function (e) {
+            if (e.path[0].id != 'show_fans_list' && e.path[1].id != 'show_fans_list' && e.path[0].id != 'search_async_input') {
+                removeAsyncList();
+            }
+        };
+    });
+</script>
+{template 'base/common-footer'}

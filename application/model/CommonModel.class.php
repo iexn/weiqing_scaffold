@@ -120,7 +120,7 @@ class CommonModel extends Model {
         if($page !== false) {
             $this->page($page, $size);
         }
-        $list = $this->getall();
+        $list = $this->uni()->real()->getall();
         if($page !== false) {
             $total = $this->getLastQueryTotal();
             $this->setPageHtml(pagination($total, $page, $size, '', ['isajax'=>true]));
@@ -144,7 +144,7 @@ class CommonModel extends Model {
         }
         $where = $this->removeCondition($condition);
         if($where === false) {
-            return false;
+            return $this->setInfo(0, '未指定条件，删除失败');
         }
         if(!is_array($where)) {
             return $this->setInfo(506, '未指定删除条件，删除失败');
@@ -158,7 +158,6 @@ class CommonModel extends Model {
         if($res === false) {
             return $this->setInfo(504, '删除失败');
         }
-
         return $this->setInfo(0, '删除成功');
     }
 
@@ -283,7 +282,7 @@ class CommonModel extends Model {
         if($result === false) {
             return $this->setInfo(708, '保存失败，请重试');
         }
-        return true;
+        return $this->setInfo(0, '保存成功');
     }
 
 }

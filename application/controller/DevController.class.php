@@ -10,7 +10,18 @@ class DevController extends CommonController
         }
 
         $table = [
-            // 'szxh_config',
+            'szxh_vija_active',
+            'szxh_vija_active_cav',
+            'szxh_vija_config',
+            'szxh_vija_gift',
+            'szxh_vija_order',
+            'szxh_vija_register',
+            'szxh_vija_rewardto',
+            'szxh_vija_rewardto_log',
+            'szxh_config',
+            'szxh_log',
+            'szxh_users',
+            'szxh_usersrobot',
         ];
 
         \wsys\Db::compile($table, true);

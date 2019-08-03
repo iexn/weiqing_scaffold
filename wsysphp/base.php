@@ -2,16 +2,16 @@
 
 /**
  * @author iexn
- * @version 3.0.0
+ * @version 2.0.0
  * @time 2019-02-13 16:43:01
  * @link https://gitee.com/tianjin_onfinger/w7_scaffold
  */
 
 // 框架版本号
-define('MVERSION', '3.0.0');
+define('MVERSION', '2.0.0');
 
 // 开发版
-define('IS_DEV', false);
+define('IS_DEV', true);
 // 按照公众号记录数据
 define('UNI_BRIDLE', true);
 define('WSYS_THEME', 'default');
@@ -40,7 +40,7 @@ if(!defined('TEMPLATE')) {
 define('MFRAME', $dir);
 
 // 模块根目录   wsys_xxxx/
-define('MROOT', $dir. DS . '..');
+define('MROOT', realpath($dir. DS . '..'));
 
 if(!defined('APP_PATH')) {
     define('APP_PATH', MROOT . '/application');

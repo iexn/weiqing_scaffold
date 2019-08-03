@@ -6,8 +6,6 @@ use wsys\model\RegisterModel;
 
 class NoticeLogic extends CommonLogic
 {
-    protected $model_class = 'notice';
-
     public function pay($ret)
     {
         list($order_sn, $_) = explode('_', $ret['tid']);
@@ -28,9 +26,28 @@ class NoticeLogic extends CommonLogic
         // 完成订单
         $OrderModel->complete($order_sn, $w7_tid, $transaction_id);
 
-        // 根据订单类型处理
         switch($order['type']) {
-            // 处理订单
+            // 送礼类型
+            case 'rewardto':
+                $register_ident = $order['type_ident'];
+
+                // 查找报名信息
+                $RegisterModel = new RegisterModel;
+                $register = $RegisterModel->register_info([
+                    'ident' => $register_ident
+                ]);
+                if(empty($register)) {
+                    return $this->setInfo(597, '数据异常，操作失败');
+                }
+
+                // 开始保存数据
+                $RewardtoLogic = new RewardtoLogic;
+                $result = $RewardtoLogic->record($order['openid'], $register, $order['params']['gift'], $order['params']['reward_num']);
+                if($result === false) {
+                    return $this->setInfo(596, $RewardtoLogic->getMessage(), $RewardtoLogic->getData());
+                }
+
+            break;
         }
 
         return $this->setInfo(0, '请求成功');

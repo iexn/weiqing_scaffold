@@ -1,0 +1,186 @@
+{template 'base/common-header'}
+<style>
+    .gift-cover {width:60px;height: 60px}
+    .table>tbody>tr>td{vertical-align:unset}
+</style>
+<div id="app" v-cloak>
+    <div class="alert alert-warning">
+        禁用礼物后，活动中还是会显示此礼物，但不能购买和赠送。
+    </div>
+    <div class="btn-group" style="margin-bottom:2rem">
+        <a href="javascript:;" class="btn btn-success" ref="page_update">新建礼物</a>
+        <a href="javascript:;" class="btn btn-primary" @click="init_gift_list">初始默认礼物列表</a>
+    </div>
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>图标</th>
+                <th>名称</th>
+                <th>价值</th>
+                <th>获赞数</th>
+                <th>初始持有量</th>
+                <th>排序</th>
+                <th>状态</th>
+                <th>编辑</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="(gift, index) in data">
+                <td class="media-middle">{{ gift.uni_id }}</td>
+                <td class="media-middle"><img :src="gift.cover | media" class="gift-cover"></td>
+                <td class="media-middle">{{ gift.name }}</td>
+                <td class="media-middle">￥ {{ gift.amount }}</td>
+                <td class="media-middle">{{ gift.score }}</td>
+                <td class="media-middle">{{ gift.init_have_total }}</td>
+                <td class="media-middle">{{ gift.sort }}</td>
+                <td class="media-middle">{{ gift.status | status_name }}</td>
+                <td class="media-middle">
+                    <a href="javascript:;" @click="page_update(gift.ident)" class="label label-success">编辑</a>
+                    <a href="javascript:;" @click="api_toggle" v-if="gift.status == 'on'" :data-ident="gift.ident" :data-index="index" :data-gift="gift" data-status='off' class="label label-default" v-html="'关闭'"></a>
+                    <a href="javascript:;" @click="api_toggle" v-else :data-ident="gift.ident" :data-index="index" data-status='on' :data-gift="gift" class="label label-info" v-html="'开启'"></a>
+                    <a href="javascript:;" @click="api_remove" :data-ident="gift.ident" class="label label-danger">删除</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div v-html="paginate" @click="turn"></div>
+</div>
+
+<script data-done="hide">
+    require(['admin'], function (Admin) {
+
+        var $vm = new Admin.vue({
+            data: {
+                data: [],
+                paginate: '',
+                page: 1,
+                size: 10
+            },
+            mounted: function () {
+                // 初始化内容
+                this.$refs.page_update.href = Admin.url('update');
+                // 加载列表
+                this.getList();
+                // 删除多余的script标签
+                Admin.script.hide();
+            },
+            methods: {
+                page_update: function (ident) {
+                    location.href = Admin.url('update', {ident:ident});
+                },
+                api_toggle: function (e) {
+                    var _this   = this;
+                    var ident   = e.target.getAttribute('data-ident');
+                    var status  = e.target.getAttribute('data-status');
+                    var gift    = e.target.getAttribute('data-gift');
+                    var index   = e.target.getAttribute('data-index');
+                    var loading = Admin.loading(e.target);
+
+                    this.$http.post(Admin.url('toggle'), {
+                        ident: ident,
+                        status: status
+                    }).then(function (response) {
+                        var result = response.data;
+                        loading.hide(function () {
+                            if (result.errno == 0) {
+                                _this.data[index].status = status;
+                            } else {
+                                Admin.xalert(result.message, false);
+                            }
+                        });
+                    })
+                },
+                api_remove: function (e) {
+                    if (!confirm('确定删除吗？')) {
+                        return false;
+                    }
+                    var _this = this;
+                    var ident = e.target.getAttribute('data-ident');
+                    var loading = Admin.loading(e.target);
+                    this.$http.post(Admin.url('remove'), {
+                        ident: ident
+                    }).then(function (response) {
+                        var result = response.data;
+                        loading.hide(function () {
+                            Admin.xalert(result.message, result.errno == 0, function (is_success) {
+                                if (is_success) _this.getList();
+                            });
+                        });
+                    })
+                },
+                getList: function (callback) {
+                    var ban = Admin.ban();
+                    this.$http.post(Admin.url('getList'), {
+                        page: this.page,
+                        size: this.size,
+                    }).then(function (response) {
+                        var result = response.data;
+                        var list = result.data.list,
+                            paginate = result.data.paginate;
+
+                        ban.hide();
+
+                        if (list.length == 0 && this.page != 1) {
+                            this.page = 1;
+                            this.getList();
+                            return false;
+                        }
+                        this.data.length = 0;
+                        for (var i in list) {
+                            this.data.push(list[i]);
+                        }
+                        this.paginate = paginate;
+                        callback && callback();
+                        
+                    });
+                },
+                turn: function (e) {
+                    // 此处必须使用微擎生成的翻页html，或每个a标签必须包含page或data-page属性 ，值为页数
+                    var turn_page = e.target.getAttribute('page') || e.target.getAttribute('data-page');
+                    if (turn_page) {
+                        this.page = turn_page
+                        this.getList();
+                    }
+                },
+                init_gift_list: function (e) {
+                    if (!confirm('初始化默认礼物列表，名称相同的默认礼物不会再次添加。\n\n是否继续？')) {
+                        return false;
+                    }
+
+                    var _loading = Admin.loading(e.target);
+                    
+                    this.$http.post(Admin.url('Gift/initGiftList')).then(function (response) {
+                        var result = response.data;
+                        if (result.errno != 0) {
+                            _loading.hide(function () {
+                                Admin.alert(result.message, false);
+                            });
+                            return false;
+                        }
+                        Admin.alert(result.message, true, function () {
+                            location.reload();
+                        });
+                    }).catch(function () {
+                        _loading.hide(function () {
+                            Admin.alert('网络异常，请稍后尝试', false);
+                        });
+                    });
+                }
+            },
+            filters: {
+                status_name: function (name) {
+                    if (name == 'on') {
+                        return '开启';
+                    }
+                    return '关闭';
+                },
+                media: function (src) {
+                    return Admin.util.tomedia(src);
+                }
+            }
+        });
+        $vm.$mount('#app');
+    })
+</script>
+{template 'base/common-footer'}

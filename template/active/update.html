@@ -1,0 +1,576 @@
+{template 'base/common-header'}
+<style type="text/css">
+    .unlock { position:relative;margin:20px 0;padding: 10px;border:1px dashed #ccc;border-radius:5px; }
+    .unlock-del { position:absolute;top: 0;left: 0 }
+</style>
+<div id="app" v-cloak>
+    <form action="javascript:;" @submit="submit" ref="form" id="form" method="post" class="form-horizontal">
+        <div>
+            <ul class="nav nav-pills" role="tablist">
+                <li role="presentation" class="active"><a href="#home" aria-controls="home" role="tab" data-toggle="tab">基础信息</a></li>
+                <li role="presentation"><a href="#unlock" aria-controls="home" role="tab" data-toggle="tab">解锁奖励</a></li>
+                <li role="presentation"><a href="#gift" aria-controls="home" role="tab" data-toggle="tab">礼物设置</a></li>
+                <li role="presentation"><a href="#jim" aria-controls="home" role="tab" data-toggle="tab">采集信息设置</a></li>
+                <li role="presentation"><a href="#share" aria-controls="home" role="tab" data-toggle="tab">分享设置</a></li>
+                <li role="presentation"><a href="#extend" aria-controls="home" role="tab" data-toggle="tab">扩展设置</a></li>
+            </ul>
+            <hr>
+            <div class="tab-content">
+                <div role="tabpanel" class="tab-pane fade in active" id="home">
+
+                    <div class="form-group">
+                        <label class="col-xs-2 control-label text-right">活动标题：</label>
+                        <div class="col-xs-10">
+                            <input type="text" class="form-control" name="title" v-model="title">
+                            <p class="help-block">* 标题最多40个字符</p>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-xs-2 control-label text-right">赠送内容：</label>
+                        <div class="col-xs-10">
+                            <input type="text" class="form-control text-width-normal" name="reward_info" v-model="reward_info"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-xs-2 control-label text-right">市场价：</label>
+                        <div class="col-xs-10">
+                            <input type="text" class="form-control text-width-small" name="amount" v-model="amount">
+                            元 </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-xs-2 control-label text-right">开始时间：</label>
+                        <div class="col-xs-10 text-width-normal">
+                            <util-date name="start_time" :value="start_time"></util-date>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-2 control-label text-right">结束时间：</label>
+                        <div class="col-xs-10 text-width-normal">
+                            <util-date name="end_time" :value="end_time"></util-date>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-xs-2 control-label text-right">活动封面：</label>
+                        <div class="col-xs-10">
+                            <util-image name="cover" :value="cover"></util-image>
+                            <span class="help-block">封面建议尺寸：979*728</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-xs-2 control-label text-right">背景音乐：</label>
+                        <div class="col-xs-10">
+                            <util-audio name="music" :value="music"></util-audio>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-xs-2 control-label text-right">咨询客服：</label>
+                        <div class="col-xs-10 limithigh">
+                            <textarea name="counsel" class="form-control" id="edit_counsel" v-model="counsel"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-2 control-label text-right">活动规则：</label>
+                        <div class="col-xs-10 limithigh">
+                            <textarea name="rule" class="form-control" id="edit_rule" v-model="rule"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-xs-2 control-label text-right">排序：</label>
+                        <div class="col-xs-10">
+                            <input type="number" name="sort" min="0" v-model="sort" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="form-group" v-if="!ident">
+                        <hr>
+                        <label class="col-xs-2 control-label text-right"></label>
+                        <div class="col-xs-10">
+                            <button type="button" ref="next_button" class="btn btn-primary change-tab" data-tab="unlock">下一步</button>
+                        </div>
+                    </div>
+                    
+                </div>
+                <div role="tabpanel" class="tab-pane fade" id="unlock">
+                    
+                    <button type="button" class="btn btn-info" @click="add_unlock">+ 添加奖励</button>
+                    <div class="unlock" v-for="(item, index) in unlock">
+                        <a class="label label-danger label-hover-danger" class="unlock-del" @click="del_unlock(item)">删除</a>
+                        <div class="form-group">
+                            <label class="col-xs-2 control-label text-right">奖励名称：</label>
+                            <div class="col-xs-10">
+                                <input type="text" class="form-control" v-model="item.name">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-xs-2 control-label text-right">零售价：</label>
+                            <div class="col-xs-10">
+                                <input type="text" class="form-control" v-model="item.amount"> 元
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-xs-2 control-label text-right">需要礼物赞数：</label>
+                            <div class="col-xs-10">
+                                <input type="number" class="form-control" min="1" v-model="item.need_num">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-xs-2 control-label text-right">奖励贴图：</label>
+                            <div class="col-xs-10">
+                                <util-image name="" :value="item.cover" @value="val => setItemCover(item, val)" :data-unlock-index="index"></util-image>
+                                <p class="help-block">* 建议贴图正方形，否则将显示不全</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" v-if="!ident">
+                        <hr>
+                        <label class="col-xs-2 control-label text-right"></label>
+                        <div class="col-xs-10">
+                            <button type="button" ref="next_button" class="btn btn-primary change-tab" data-tab="home">上一步</button>
+                            <button type="button" ref="next_button" class="btn btn-primary change-tab" data-tab="gift">下一步</button>
+                        </div>
+                    </div>
+                    
+                </div>
+
+                <div role="tabpanel" class="tab-pane fade" id="gift">
+                    
+                    <button type="button" class="btn btn-info" @click="add_gift">+ 添加礼物</button>
+                        
+                    <div class="form-group" v-for="(item, index) in gift">
+                        <label class="col-xs-2 control-label text-right"></label>
+                        <div class="col-xs-10">
+                            <select v-model="item.gift_id">
+                                <option value="">--请选择礼物--&emsp;</option>
+                                <option v-for="t in gift_list" :value="t.ident">{{ t.name }}&emsp;</option>
+                            </select>
+                            <a class="label label-danger label-hover-danger" class="gift-del" @click="del_gift(item)">删除</a>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" v-if="!ident">
+                        <hr>
+                        <label class="col-xs-2 control-label text-right"></label>
+                        <div class="col-xs-10">
+                            <button type="button" ref="next_button" class="btn btn-primary change-tab" data-tab="unlock">上一步</button>
+                            <button type="button" ref="next_button" class="btn btn-primary change-tab" data-tab="jim">下一步</button>
+                        </div>
+                    </div>
+                    
+                </div>
+
+                <div role="tabpanel" class="tab-pane fade" id="jim">
+                    
+                    <div class="alert alert-warning">
+                        【显示为活动信息人】为【是】将在活动页面报名者报名后对外展示其信息。注意：最多显示一项；多项选【是】时仅生效第一项
+                    </div>
+
+                    <button type="button" class="btn btn-info" @click="add_jim">+ 添加表单信息</button>
+                    <div class="unlock" v-for="(item, index) in jim">
+                        <a class="label label-danger label-hover-danger" class="jim-del" @click="del_jim(item)">删除</a>
+                        <div class="form-group">
+                            <label class="col-xs-2 control-label text-right">表单名称：</label>
+                            <div class="col-xs-10">
+                                <input type="text" class="form-control" v-model="item.name">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-xs-2 control-label text-right">表单类型：</label>
+                            <div class="col-xs-10">
+                                <select v-model="item.type">
+                                    <option value="text">文本&emsp;</option>
+                                    <option value="mobile">手机号&emsp;</option>
+                                    <option value="date">年月日&emsp;</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-xs-2 control-label text-right">表单提示：</label>
+                            <div class="col-xs-10">
+                                <input type="text" class="form-control" min="1" v-model="item.placeholder">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-xs-2 control-label text-right">显示为活动信息人：</label>
+                            <div class="col-xs-10">
+                                <select v-model="item.show_active">
+                                    <option value="0">否&emsp;</option>
+                                    <option value="1">是&emsp;</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" v-if="!ident">
+                        <hr>
+                        <label class="col-xs-2 control-label text-right"></label>
+                        <div class="col-xs-10">
+                            <button type="button" ref="next_button" class="btn btn-primary change-tab" data-tab="gift">上一步</button>
+                            <button type="button" ref="next_button" class="btn btn-primary change-tab" data-tab="share">下一步</button>
+                        </div>
+                    </div>
+                    
+                </div>
+
+                <div role="tabpanel" class="tab-pane fade" id="share">
+                    
+                    <div class="form-group">
+                        <label class="col-xs-2 control-label text-right">分享标题：</label>
+                        <div class="col-xs-10">
+                            <input type="text" class="form-control text-width-normal" name="share_title" v-model="share_title">
+                            <span class="help-block">填写关键字 <span class="label label-default">%s</span> 将会替换为报名信息的活动信息人。</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-2 control-label text-right">分享副标题：</label>
+                        <div class="col-xs-10">
+                            <input type="text" class="form-control text-width-normal" name="share_desc" v-model="share_desc">
+                            <span class="help-block">填写关键字 <span class="label label-default">%s</span> 将会替换为报名信息的活动信息人。</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-xs-2 control-label text-right">分享图片：</label>
+                        <div class="col-xs-10">
+                            <util-image name="share_imgUrl" :value="share_imgUrl"></util-image>
+                            <span class="help-block">图片建议尺寸：300*300。不上传图片直接写入 <span class="label label-default">%s</span> 将会使用报名人的上传图片第一张作为分享图片</span>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="form-group" v-if="!ident">
+                        <label class="col-xs-2 control-label text-right"></label>
+                        <div class="col-xs-10">
+                            <button type="button" ref="next_button" class="btn btn-primary change-tab" data-tab="jim">上一步</button>
+                            <button type="button" ref="next_button" class="btn btn-primary change-tab" data-tab="extend">下一步</button>
+                        </div>
+                    </div>
+                    
+                </div>
+
+                <div role="tabpanel" class="tab-pane fade" id="extend">
+                    <div class="form-group">
+                        <label class="col-xs-2 control-label text-right">开启核销：</label>
+                        <div class="col-xs-10">
+                            <select name="cav_open" v-model="cav_open">
+                                <option value="on">开启&emsp;</option>
+                                <option value="off">关闭&emsp;</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-2 control-label text-right">礼物接收设置：</label>
+                        <div class="col-xs-10">
+                            <select name="cav_on_give_gift" v-model="cav_on_give_gift">
+                                <option value="0">核销后继续接收礼物&emsp;</option>
+                                <option value="1">核销后不再接收礼物&emsp;</option>
+                            </select>
+
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-2 control-label text-right">进入活动福袋显示：</label>
+                        <div class="col-xs-10">
+                            <select name="enter_bless_status" v-model="enter_bless_status">
+                                <option value="off">正常&emsp;</option>
+                                <option value="highlight">突出显示&emsp;</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-2 control-label text-right">关注我们按钮：</label>
+                        <div class="col-xs-10">
+                            <select name="show_call_us" v-model="show_call_us">
+                                <option value="off">不显示&emsp;</option>
+                                <option value="on">显示&emsp;</option>
+                            </select>
+                            <p class="help-block">显示关注我们按钮时，报名成功首次会弹出显示一次</p>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-2 control-label text-right">核销员报名表操作：</label>
+                        <div class="col-xs-10">
+                            <select name="show_caver_register_list" v-model="show_caver_register_list">
+                                <option value="off">关闭&emsp;</option>
+                                <option value="on">开启&emsp;</option>
+                            </select>
+                            <p class="help-block">开启后，核销员进入活动将显示报名名单按钮，并且数据允许导出</p>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-2 control-label text-right">示例活动展示图：</label>
+                        <div class="col-xs-10">
+                            <util-image name="preview_covers" :value="preview_covers" multiple="true"></util-image>
+                            <p class="help-block">存在且用户未报名时，直接访问分享链接会显示示例活动</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="form-group" v-if="!ident">
+                        <label class="col-xs-2 control-label text-right"></label>
+                        <div class="col-xs-10">
+                            <button type="button" ref="next_button" class="btn btn-primary change-tab" data-tab="share">上一步</button>
+                            <button type="submit" ref="submit_button" class="btn btn-success">保存</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group" v-if="ident">
+                <label class="col-xs-2 control-label text-right"></label>
+                <div class="col-xs-10">
+                    <button type="submit" ref="submit_button" class="btn btn-success">保存</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<script>
+    require(['admin'], function (Admin) {
+        var $vm = new Admin.vue({
+            data: function () {
+                var data = {
+                    ident: '',
+                    gift_list: [],
+                    // 字段
+                    title: '',
+                    reward_info: '',
+                    amount: '',
+                    start_time: '',
+                    end_time: '',
+                    cover: '',
+                    music: '',
+                    counsel: '', // 咨询客服
+                    rule: '',
+                    sort: '0',
+                    unlock: [],
+                    gift: [],
+                    jim: [],
+                    share_title: '%s的预告片精彩出炉了~',
+                    share_desc: '叔叔阿姨记得给我萌萌的照片点赞哦~',
+                    share_imgUrl: '%s',
+                    cav_open: 'on',
+                    cav_on_give_gift: '0',
+                    preview_covers: '',
+                    enter_bless_status: 'off',
+                    show_call_us: 'off',
+                    show_caver_register_list: 'off'
+                };
+                // 加载本地缓存数据
+                if (!('ident' in window.sysinfo.gets)) {
+                    var storage_data = localStorage.getItem('new_active_data');
+                    if (storage_data == '{}') {
+                        storage_data = null;
+                    }
+                    try {
+                        var storage = JSON.parse(storage_data);
+                    } catch (error) {
+                        storage = false;
+                    }
+                    if (storage != false && storage != null) {
+                        data.title                    = storage.title;
+                        data.reward_info              = storage.reward_info;
+                        data.amount                   = storage.amount;
+                        data.start_time               = storage.start_time;
+                        data.end_time                 = storage.end_time;
+                        data.cover                    = storage.cover;
+                        data.music                    = storage.music;
+                        data.counsel                  = storage.counsel;
+                        data.rule                     = storage.rule;
+                        data.sort                     = storage.sort;
+                        data.unlock                   = storage.unlock;
+                        data.gift                     = storage.gift;
+                        data.jim                      = storage.jim;
+                        data.share_title              = storage.share_title;
+                        data.share_desc               = storage.share_desc;
+                        data.share_imgUrl             = storage.share_imgUrl;
+                        data.cav_open                 = storage.cav_open;
+                        data.cav_on_give_gift         = storage.cav_on_give_gift;
+                        data.preview_covers           = storage.preview_covers;
+                        data.enter_bless_status       = storage.enter_bless_status;
+                        data.show_call_us             = storage.show_call_us;
+                        data.show_caver_register_list = storage.show_caver_register_list;
+                    }
+                }
+                return data;
+            },
+            mounted: function () {
+                var _this = this;
+                this.$refs.form.action = Admin.url('save');
+                if ('ident' in window.sysinfo.gets) {
+                    this.ident = window.sysinfo.gets.ident
+                    var _ban = Admin.ban();
+                    this.$http.get(Admin.url('detail', {
+                        ident: this.ident
+                    })).then(function (response) {
+                        var result = response.data;
+                        _ban.hide(function () {
+                            if (result.errno != 0) {
+                                Admin.alert(result.message, false, function () {
+                                    history.back();
+                                });
+                                return false;
+                            }
+                            _this.title                    = result.data.title;
+                            _this.reward_info              = result.data.reward_info;
+                            _this.amount                   = result.data.amount;
+                            _this.start_time               = result.data.start_time;
+                            _this.end_time                 = result.data.end_time;
+                            _this.cover                    = result.data.cover;
+                            _this.music                    = result.data.music;
+                            _this.counsel                  = result.data.counsel;
+                            _this.rule                     = result.data.rule;
+                            _this.sort                     = result.data.sort;
+                            _this.share_title              = result.data.share_title;
+                            _this.share_desc               = result.data.share_desc;
+                            _this.share_imgUrl             = result.data.share_imgUrl;
+                            _this.cav_open                 = result.data.cav_open;
+                            _this.cav_on_give_gift         = result.data.cav_on_give_gift;
+                            _this.preview_covers           = result.data.preview_covers;
+                            _this.enter_bless_status       = result.data.enter_bless_status;
+                            _this.show_call_us             = result.data.show_call_us;
+                            _this.show_caver_register_list = result.data.show_caver_register_list;
+                            _this.unlock.push(...JSON.parse(result.data.unlock));
+                            _this.gift.push(...JSON.parse(result.data.gift));
+                            _this.jim.push(...JSON.parse(result.data.jim));
+
+                            // 富文本内容初始化
+                            Admin.createEditor('edit_counsel');
+                            Admin.createEditor('edit_rule');
+
+                        });
+                    }).catch(function (e) {
+                        _ban.hide(function () {
+                            Admin.alert('服务器异常，请稍后再试');
+                        })
+                    });
+                } else {
+                    Admin.createEditor('edit_counsel');
+                    Admin.createEditor('edit_rule');
+                }
+                this.$http.get(Admin.url('Gift/giftList')).then(function (response) {
+                    var result = response.data;
+                    this.gift_list.push(...result.data);
+                });
+            },
+            methods: {
+                submit: function (e) {
+                    e.preventDefault();
+                    if (!confirm('是否保存？')) {
+                        return false;
+                    }
+                    var _loading = Admin.loading(this.$refs.submit_button);
+                    var fd = new FormData(e.target);
+                    if (this.ident != '') {
+                        fd.append('ident', this.ident);
+                    }
+                    
+                    fd.append('counsel', document.querySelector('#edit_counsel').value);
+                    fd.append('rule', document.querySelector('#edit_rule').value);
+                    fd.append('unlock', JSON.stringify(this.unlock));
+                    fd.append('gift', JSON.stringify(this.gift));
+                    fd.append('jim', JSON.stringify(this.jim));
+                    this.$http.post(e.target.action, fd).then(function (response) {
+                        var result = response.data;
+                        if (result.errno == 0) {
+                            localStorage.removeItem('new_active_data');
+                            Admin.alert(result.message, true, function () {
+                                location.href = Admin.url('index');
+                            });
+                        } else {
+                            _loading.hide(function () {
+                                Admin.alert(result.message, false);
+                            });
+                        }
+                    });
+                },
+                add_unlock: function () {
+                    this.unlock.push({
+                        name: '',
+                        amount: '',
+                        need_num: '',
+                        cover: ''
+                    });
+                },
+                del_unlock: function (item) {
+                    if (!confirm('是否删除？')) {
+                        return false;
+                    }
+                    this.unlock.splice(this.unlock.indexOf(item), 1);
+                },
+                setItemCover: function (item, val) {
+                    item.cover = val
+                },
+                add_gift: function () {
+                    this.gift.push({
+                        gift_id: ''
+                    });
+                },
+                del_gift: function (item) {
+                    if (!confirm('是否删除？')) {
+                        return false;
+                    }
+                    this.gift.splice(this.gift.indexOf(item), 1);
+                },
+                add_jim: function () {
+                    this.jim.push({
+                        name: '',
+                        type: 'text',
+                        placeholder: '',
+                        show_active: 0
+                    });
+                },
+                del_jim: function (item) {
+                    if (!confirm('是否删除？')) {
+                        return false;
+                    }
+                    this.jim.splice(this.jim.indexOf(item), 1);
+                }
+            }
+        });
+        $vm.$mount('#app');
+
+
+        if (!('ident' in window.sysinfo.gets)) {
+            // 每隔5秒钟记录一下历史编辑
+            setInterval(function () {
+                var data = {
+                    title                   : $vm.title,
+                    reward_info             : $vm.reward_info,
+                    amount                  : $vm.amount,
+                    start_time              : $vm.start_time,
+                    end_time                : $vm.end_time,
+                    cover                   : $vm.cover,
+                    music                   : $vm.music,
+                    counsel                 : $vm.counsel,
+                    rule                    : $vm.rule,
+                    sort                    : $vm.sort,
+                    unlock                  : $vm.unlock,
+                    gift                    : $vm.gift,
+                    jim                     : $vm.jim,
+                    share_title             : $vm.share_title,
+                    share_desc              : $vm.share_desc,
+                    share_imgUrl            : $vm.share_imgUrl,
+                    cav_open                : $vm.cav_open,
+                    cav_on_give_gift        : $vm.cav_on_give_gift,
+                    preview_covers          : $vm.preview_covers,
+                    enter_bless_status      : $vm.enter_bless_status,
+                    show_call_us            : $vm.show_call_us,
+                    show_caver_register_list: $vm.show_caver_register_list,
+                };
+                localStorage.setItem('new_active_data', JSON.stringify(data));
+            }, 5000);
+        }
+
+        // 切换上一步下一步
+        $('.change-tab').on('click', function () {
+            var tab = $(this).attr('data-tab');
+            $('a[href="#'+tab+'"]').tab('show');
+        });
+    });
+</script>
+{template 'base/common-footer'}

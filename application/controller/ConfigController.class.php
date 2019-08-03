@@ -13,19 +13,21 @@ class ConfigController extends CommonController
     {
         
         $data = [
-            'page_size'           => '',
-            'payment_url'         => '',
-            'share_url'           => '',
-            'active_url'          => '',
-            'amap_key'            => '',
-            'mch_center_cover'    => '',
-            'mch_content'         => '',
-            'template_id_order'   => '',
-            'template_id_cav'     => '',
-            'template_id_audit'   => '',
-            'template_id_apply'   => '',
-            'template_id_message' => '',
-            'support'             => '',
+            'page_size'                    => '',
+            'payment_url'                  => '',
+            'share_url'                    => '',
+            'active_url'                   => '',
+            'amap_key'                     => '',
+            'mch_center_cover'             => '',
+            'mch_content'                  => '',
+            'template_id_order'            => '',
+            'template_id_cav'              => '',
+            'template_id_audit'            => '',
+            'template_id_apply'            => '',
+            'template_id_message'          => '',
+            'support'                      => '',
+            'template_id_register_success' => '',
+            'template_id_cav_success'      => '',
         ];
 
         $data = array_intersect_key($post, $data);

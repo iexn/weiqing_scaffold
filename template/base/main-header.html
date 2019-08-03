@@ -35,6 +35,8 @@
             'cookie' : { 'pre': '{$_W['config']['cookie']['pre']}' },
             'account' : {php echo json_encode($_W['account'])},
             'server' : { 'php' : '{php echo phpversion()}' },
+            'controller_name': '{php echo ADDON_ACTION}',
+            'action_name': '{php echo ADDON_ET}'
         };
     </script>
 

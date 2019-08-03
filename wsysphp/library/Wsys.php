@@ -37,10 +37,10 @@ class Wsys extends \WeModuleSite
         $controller = new $class;
         
         $action = ADDON_ET;
-        if(!method_exists($controller, $action)) {
-            throw new \Exception("$inc $action 方法不存在");
-            return false;
-        }
+        // if(!method_exists($controller, $action)) {
+        //     throw new \Exception("$inc $action 方法不存在");
+        //     return false;
+        // }
         $res = $controller->$action($_W, $_GET, $_POST);
 
         $code = $controller->getCode();
@@ -159,12 +159,12 @@ class Wsys extends \WeModuleSite
         C(getConfig());
 
         // 加载项目配置项
-        $conf_dir = MROOT . '/applocation/conf';
+        $conf_dir = MROOT . '/application/conf/';
         if(is_dir($conf_dir)) {
             $files = scandir($conf_dir);
             if (!empty($files)) {
                 $confs = [];
-                $common_conf = $conf_dir . '/config.php';
+                $common_conf = $conf_dir . 'config.php';
                 if(file_exists($common_conf)) {
                     $confs = array_merge($confs, include($common_conf) ?: []);
                 }
@@ -176,7 +176,7 @@ class Wsys extends \WeModuleSite
                         continue;
                     }
                     if (preg_match('/\.php$/is', $file)) {
-                        $confs = array_merge($confs, include($file) ?: []);
+                        $confs = array_merge($confs, include($conf_dir . $file) ?: []);
                     }
                 }
                 C($confs);

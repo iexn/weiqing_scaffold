@@ -1,14 +1,14 @@
 define(function (require, exports, module) {
-    
-    var wx = require('wx'),
-        _  = require('lodash'),
-        $  = require('jquery');
 
-        var sysinfo = {},
+    var wx = require('wx'),
+        _ = require('lodash'),
+        $ = require('jquery');
+
+    var sysinfo = {},
         App = {}
 
     // 注册jssdk
-    function init (url, options) {
+    function init(url, options) {
 
         if (type(options) == 'function') {
             options = {
@@ -17,9 +17,9 @@ define(function (require, exports, module) {
         }
 
         options = _.defaults(options, {
-            before: function () {},
+            before: function () { },
             done: function (is_complete) { return true; },
-            fail: function () {}
+            fail: function () { }
         }, options);
 
         if (options.before() === false) {
@@ -63,14 +63,14 @@ define(function (require, exports, module) {
         });
     }
 
-    function type (mixed) {
+    function type(mixed) {
         if (typeof mixed != 'object') {
             return typeof mixed;
         }
         return Object.prototype.toString.call(mixed).slice(8, -1).toLowerCase();
     }
 
-    function trimMenu () {
+    function trimMenu() {
         wx.hideAllNonBaseMenuItem();
         wx.showMenuItems({
             menuList: [
@@ -81,28 +81,28 @@ define(function (require, exports, module) {
         });
     }
 
-    function ready (callback) {
+    function ready(callback) {
         // 非微信终端开发时填写以下两句
-        callback && callback(true);
-        return false;
+        // callback && callback(true);
+        // return false;
         // ---
         wx.ready(function () {
             trimMenu();
             callback && callback(true);
         });
-        wx.error(function(res){
+        wx.error(function (res) {
             callback && callback(false, res);
         });
     }
 
-    function web2app_url (action, gets, hash, addr) {
+    function web2app_url(action, gets, hash, addr) {
         // 微擎地址处理方案
         var local = sysinfo.siteroot + 'app/index.php';
         var url = addr || local;
 
         if (action.indexOf('/') != -1) {
             var actions = action.split('/');
-            get = get || {};
+            gets = gets || {};
             action = actions[0];
             gets.et = actions[1];
         }
@@ -116,7 +116,7 @@ define(function (require, exports, module) {
         return parseUrl(url, params, hash);
     }
 
-    function parseUrl (url, params, hash) {
+    function parseUrl(url, params, hash) {
         var addr = url || '';
         var p = [];
         for (var i in params) {
@@ -137,8 +137,8 @@ define(function (require, exports, module) {
      * @param {function} callback 如果只返回扫描内容，在此函数中获取
      * @param {Object} options 配置项，包括text:true|false，type:1|2|0
      */
-    function scan (callback, options) {
-        
+    function scan(callback, options) {
+
         options = _.defaults(options, {
             text: true, // 是否只返回显示的文字
             type: 2 // 可扫描类型，1一维码 2二维码 0全部类型
@@ -148,7 +148,7 @@ define(function (require, exports, module) {
         switch (options.type) {
             case 1: scanType = ['barCode']; break;
             case 2: scanType = ['qrCode']; break;
-            case 0: default: scanType = ['qrCode','barCode'];
+            case 0: default: scanType = ['qrCode', 'barCode'];
         }
 
         wx.ready(function () {
@@ -171,15 +171,15 @@ define(function (require, exports, module) {
      * 调用微擎提供的支付参数进行支付
      * @param {Object} options 配置项，fee|title|sn|done|cancel|fail
      */
-    function pay (options) {
+    function pay(options) {
 
         options = _.defaults(options, {
             fee: '',
             title: '',
             sn: '',
-            done: function () {},
-            cancel: function() {},
-            fail: function () {},
+            done: function () { },
+            cancel: function () { },
+            fail: function () { },
         });
 
         $.post("index.php?i=" + sysinfo.uniacid + "&j=" + sysinfo.acid + "&c=entry&m=core&do=pay&iswxapp=0", {
@@ -197,15 +197,15 @@ define(function (require, exports, module) {
                 options.fail(e.message)
                 return false;
             }
-            
+
             var res = e.message.message;
 
             wx.chooseWXPay({
                 timestamp: res.timeStamp,   // 支付签名时间戳，注意微信jssdk中的所有使用timestamp字段均为小写。但最新版的支付后台生成签名使用的timeStamp字段名需大写其中的S字符
-                nonceStr : res.nonceStr,    // 支付签名随机串，不长于 32 位
-                package  : res.package,     // 统一支付接口返回的prepay_id参数值，提交格式如：prepay_id=\*\*\*）
-                signType : res.signType,    // 签名方式，默认为'SHA1'，使用新版支付需传入'MD5'
-                paySign  : res.paySign,     // 支付签名
+                nonceStr: res.nonceStr,    // 支付签名随机串，不长于 32 位
+                package: res.package,     // 统一支付接口返回的prepay_id参数值，提交格式如：prepay_id=\*\*\*）
+                signType: res.signType,    // 签名方式，默认为'SHA1'，使用新版支付需传入'MD5'
+                paySign: res.paySign,     // 支付签名
                 success: function (res) {
                     options.done();
                 },
@@ -219,9 +219,9 @@ define(function (require, exports, module) {
 
         });
     }
-    
+
     var shareMessageCallbackControl = true;
-    function shareMessage (options) {
+    function shareMessage(options) {
 
         shareMessageCallbackControl = true;
 
@@ -230,10 +230,10 @@ define(function (require, exports, module) {
             desc: '',
             imgUrl: '',
             link: location.href,
-            done: function () {}
+            done: function () { }
         });
 
-        wx.updateAppMessageShareData({ 
+        wx.updateAppMessageShareData({
             title: options.title, // 分享标题
             desc: options.desc, // 分享描述
             imgUrl: options.imgUrl,
@@ -253,15 +253,15 @@ define(function (require, exports, module) {
         });
     }
 
-    function shareMessageCallback (callback, e) {
-        if(shareMessageCallbackControl) {
+    function shareMessageCallback(callback, e) {
+        if (shareMessageCallbackControl) {
             callback(e);
         }
         shareMessageCallbackControl = false;
     }
 
     var shareTimelineCallbackControl = true;
-    function shareTimeline (options) {
+    function shareTimeline(options) {
 
         shareTimelineCallbackControl = true;
 
@@ -270,10 +270,10 @@ define(function (require, exports, module) {
             desc: '',
             imgUrl: '',
             link: location.href,
-            done: function () {}
+            done: function () { }
         });
 
-        wx.updateTimelineShareData({ 
+        wx.updateTimelineShareData({
             title: options.title, // 分享标题
             desc: options.desc, // 分享描述
             imgUrl: options.imgUrl,
@@ -293,14 +293,14 @@ define(function (require, exports, module) {
         });
     }
 
-    function shareTimelineCallback (callback, e) {
-        if(shareTimelineCallbackControl) {
+    function shareTimelineCallback(callback, e) {
+        if (shareTimelineCallbackControl) {
             callback(e);
         }
         shareTimelineCallbackControl = false;
     }
 
-    function loading (el) {
+    function loading(el) {
 
         el = el || 'body';
         el = document.querySelector(el);
@@ -311,8 +311,8 @@ define(function (require, exports, module) {
 
         var loader = document.createElement('div');
         loader.id = 'loading_loader';
-        loader.setAttribute('style','position:absolute;top:0;left:0;width:100%;height:100%;z-index:1');
-        loader.innerHTML = '<div style="position:absolute;width:3rem;height:3rem;top:0;bottom:0;left:0;right:0;margin:auto;background-image:url('+sysinfo.resource_url+'loading.gif);background-size:contain;background-repeat:no-repeat"></div>';
+        loader.setAttribute('style', 'position:absolute;top:0;left:0;width:100%;height:100%;z-index:1');
+        loader.innerHTML = '<div style="position:absolute;width:3rem;height:3rem;top:0;bottom:0;left:0;right:0;margin:auto;background-image:url(' + sysinfo.resource_url + 'loading.gif);background-size:contain;background-repeat:no-repeat"></div>';
         el.appendChild(loader);
         return {
             hide: function (callback) {
@@ -322,15 +322,121 @@ define(function (require, exports, module) {
         };
     }
 
+    function type (mixed) {
+        var type = typeof mixed;
+        if (type != 'object') {
+            return type;
+        }
+        type = Object.prototype.toString.call(mixed);
+        return type.slice(8, -1).toLowerCase();
+    }
+    function is_hide (element) {
+        try {
+            return element.offsetParent === null;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    /**
+     * 加载更多
+     * @param {string|dom} selector 为添加上拉的执行范围dom
+     * @param {function} callback 成功触发上拉加载的回调处理，function (done) {}
+     * @param {number} offset 偏移量，向上偏移的像素值，默认为0
+     */
+    function loadmore(selector, callback, offset) {
+        var option = {
+            selector: null,
+            parent: window,
+            callback: function (done) {
+    
+            },
+            offset: 5
+        };
+        if (type(selector) == 'object') {
+            option = $.extend({}, option, selector);
+        } else {
+            option = $.extend({}, option, {
+                selector: selector,
+                callback: callback,
+                offset: offset
+            });
+        }
+    
+        var upTip = $('<p>').addClass('text-center load-more').text('上拉加载更多');
+        var dom = $(option.selector);
+        var loading = false;
+        dom.append(upTip);
+        $(option.parent).on('scroll', run);
+    
+        if (!is_hide($(option.parent)[0])) {
+            run();
+        }
+    
+        function run() {
+            var in_box = Math.abs($(option.selector).offset().top + $(option.selector).height() - $(parent.parent).scrollTop() - -option.offset) < window.innerHeight;
+            if (in_box && !loading) {
+                loading = true;
+                upTip.html('<i class="fas fa-spinner fa-spin"></i> 正在加载中');
+                option.callback && option.callback(function (over) {
+                    if (over) {
+                        upTip.text('没有更多数据了');
+                    } else {
+                        upTip.text('上拉加载更多');
+                        loading = false;
+                        run();
+                    }
+                }, is_hide(option.parent));
+            }
+        }
+    
+        function reload() {
+            loading = false;
+            run();
+        }
+    
+        return {
+            run: run,
+            reload: reload
+        };
+    }
+
+    // 复制文本
+    var copy_text = function copy_text (value) {
+        var app_copy_textarea = document.createElement('textarea');
+        app_copy_textarea.value = value;
+
+        app_copy_textarea.style.position = 'absolute';
+        app_copy_textarea.style.left     = '-9999px';
+        app_copy_textarea.style.width    = '0px';
+        app_copy_textarea.style.height   = '0px';
+        app_copy_textarea.style.border   = '1px solid transparent';
+        app_copy_textarea.style.margin   = '0px';
+        app_copy_textarea.style.padding  = '0px';
+        app_copy_textarea.style.fontSize = '12pt';
+        document.body.appendChild(app_copy_textarea);
+        app_copy_textarea.select();
+        var result = document.execCommand('copy');
+        document.body.removeChild(app_copy_textarea);
+        return result;
+    }
+
+    // jquery式返回顶部
+    var return_top = function return_top () {
+        $('html, body').animate({
+            scrollTop: $("body").offset().top
+        }, 500);
+    }
+
     // 路由
     function Router() {
         this.routes = {};
         this.currentURL = '';
     }
-    Router.prototype.route = function(path, callback) {
-        this.routes[path] = callback || function() {};
+    Router.prototype.route = function (path, callback) {
+        this.routes[path] = callback || function () { };
     }
-    Router.prototype.refresh = function() {
+    Router.prototype.refresh = function () {
         this.currentURL = location.hash.slice(1);
         if (this.routes[this.currentURL]) {
             this.routes[this.currentURL]({
@@ -342,7 +448,7 @@ define(function (require, exports, module) {
             });
         };
     }
-    Router.prototype.init = function() {
+    Router.prototype.init = function () {
         window.addEventListener('load', this.refresh.bind(this), false);
         window.addEventListener('hashchange', this.refresh.bind(this), false);
     }
@@ -351,12 +457,17 @@ define(function (require, exports, module) {
     exports.init  = init;
     exports.ready = ready;
     exports.wx    = {
-        scan         : scan,
-        pay          : pay,
-        shareMessage : shareMessage,
+        scan: scan,
+        pay: pay,
+        shareMessage: shareMessage,
         shareTimeline: shareTimeline
     };
-    exports.url     = web2app_url;
-    exports.router  = new Router;
-    exports.loading = loading;
+    exports.url      = web2app_url;
+    exports.router   = new Router;
+    exports.loading  = loading;
+    exports.loadmore = loadmore;
+    exports.copy     = {
+        text: copy_text
+    };
+    exports.return_top = return_top;
 });

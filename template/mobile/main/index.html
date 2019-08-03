@@ -1,20 +1,388 @@
 <!DOCTYPE html>
 <html lang="en">
-
+    
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>wsys</title>
-    {template 'base/header-config'}
-    <link rel="stylesheet" href="{__PUBLIC__}/mobile/default/index.min.css?v=2019021301">
+    <title></title>
 </head>
 
 <body>
-    <div id="app">
-        <button id="btn">button</button>
+    <div id="loading" class="loading loading-ball-scale">
+        <style type="text/css">[v-cloak]{display:none}#app{visibility:hidden}.loading.loading-ball-scale,.loading.loading-ball-scale::before{content:' ';color:rgb(152,191,246);width:128px;height:128px;position:relative;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;border:0 solid currentColor;border-radius:100%;opacity:0;-webkit-animation:ball-scale 1s 0s ease-in-out infinite;-moz-animation:ball-scale 1s 0s ease-in-out infinite;-o-animation:ball-scale 1s 0s ease-in-out infinite;animation:ball-scale 1s 0s ease-in-out infinite;display:inline-block;float:none;background-color:currentColor}@keyframes ball-scale{0%{opacity:1;-webkit-transform:scale(0);-moz-transform:scale(0);-o-transform:scale(0);transform:scale(0)}100%{opacity:0;-webkit-transform:scale(1);-moz-transform:scale(1);-o-transform:scale(1);transform:scale(1)}}.loading.loading-ball-scale{position:fixed;z-index:99;margin:auto;top:0;bottom:0;left:0;right:0;background:white}</style>
+        <script>
+            window.init_url = '{php echo web2app_url("w7/sysinfo")}';
+            window.baseUrl  = '{__PUBLIC__}';
+            window.libUrl  = '{__LIB__}';
+            window.v = '2019071105';
+            window.enter = 'index';
+        </script>
     </div>
-    <script src="{__PUBLIC__}/mobile/default/index.min.js?v=2019021301"></script>
+    <div id="app">
+        <div class="contain cover">
+            <div><img v-for="u in uploads" v-lazy="u.url"></div>
+        </div>
+        <div class="contain details">
+            <div class="details-countdown clearfix">
+                <span class="details-countdown-timeout" ref="details_countdown_timeout">活动结束</span>
+            </div>
+            <div class="details-info clearfix">
+                <div v-lazy:background-image="first_cover" class="details-avatar"></div>
+                <span>{{ jim_form_text }}</span>
+                <span class="details-sub-title">感谢好基友们送的礼物</span>
+            </div>
+            <div class="details-participant">
+                <ul class="details-participant-list clearfix" v-if="rewardto_users.length > 0">
+                    <li class="details-participant-item col-xs-2" v-for="rewardto_user in rewardto_users">
+                        <p class="participant-avatar" v-lazy:background-image="rewardto_user.avatar"></p>
+                        <p class="participant-name"><span>{{ rewardto_user.name }}</span></p>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="contain unlock">
+            <ul class="unlock-list">
+                <li class="unlock-item" v-for="u in unlock">
+                    <div class="unlock-item-main clearfix">
+                        <div class="unlock-bg" style="background-image: url(data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=);" v-lazy:background-image="u.cover">
+                            <div class="unlock-none" v-if="+u.need_num > +gift_score"></div>
+                        </div>
+                        <div class="unlock-desc">
+                            <div class="unlock-desc-top">
+                                <p>{{ u.name }}</p>
+                                <p>零售价 <span class="text-obvious">￥{{ u.amount }}</span></p>
+                            </div>
+                            <div class="unlock-desc-bottom">
+                                <p class="unlock-desc-tips">需要{{ u.need_num }}个赞</p>
+                                <p>已获得 {{ gift_score }} 个赞</p>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div class="contain support">
+            <a href="javascript:;" v-text="support"></a>
+        </div>
+        <div class="contain-fix contain-fix-top">
+            <div class="fix fix-topright">
+                <div class="fix-music"></div>
+                <div class="fix-topright-rule">
+                    <a href="#/rule" class="fix-topright-rule-content">
+                        <div>活动</div>
+                        <div>规则</div>
+                    </a>
+                </div>
+                <div class="fix-topright-rule" v-if="show_caver_register_list == 'on' && is_caver">
+                    <a href="#/export" class="fix-topright-rule-content">
+                        <div>报名</div>
+                        <div>名单</div>
+                    </a>
+                </div>
+                <div class="fix-topright-rule fix-topright-call-us" v-if="show_call_us == 'on' && account_qrcode_link != ''">
+                    <a href="#/call-us" class="fix-topright-rule-content">
+                        <div>关注</div>
+                        <div>我们</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="contain-fix contain-fix-bottom">
+            <div class="fix fix-tabbar">
+                <a href="#/service" class="fix-tabbar-item">
+                    <span class="tabbar-icon icon-service"></span>
+                    <p class="tabbar-name">咨询客服</p>
+                </a>
+                <a href="#/appointment" class="fix-tabbar-item" ref="appointment_link">
+                    <span class="tabbar-icon icon-appointment"></span>
+                    <p class="tabbar-name" ref="appointment_name">预约活动</p>
+                </a>
+                <a href="#/gift" class="fix-tabbar-item">
+                    <span class="tabbar-icon icon-gift"></span>
+                    <p class="tabbar-name">送礼物</p>
+                </a>
+                <a href="#/rule" class="fix-tabbar-item">
+                    <span class="tabbar-icon icon-rule"></span>
+                    <p class="tabbar-name">活动规则</p>
+                </a>
+                <a href="javascript:;" class="fix-tabbar-item" ref="rank_link">
+                    <span class="tabbar-icon icon-rank"></span>
+                    <p class="tabbar-name">排行榜</p>
+                </a>
+            </div>
+        </div>
+        <!-- <div class="fix fix-bottomright"> -->
+            <div class="fix-bless enter-bless"><a href="#/appointment_over"><img src="{__PUBLIC__}/app/default/images/1.png"></a></div>
+            <div class="fix-bless-mask"></div>
+        <!-- </div> -->
+        <div class="contain-fix contain-fix-layout">
+            <div class="fix fix-rule">
+                <div class="fix-layouter" data-layout-router-name="/rule">
+                    <div class="fix-rule-layout layouter-fadein">
+                        <span class="fix-close layouter-close"></span>
+                        <div class="fix-rule-content">
+                            <div class="fix-rule-title">
+                                <span>活动攻略</span>
+                            </div>
+                            <div class="fix-rule-desc" v-html="rule"></div>
+                            <div class="fix-rule-btn layouter-close">我知道了</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="fix fix-call-us">
+                <div class="fix-layouter" data-layout-router-name="/call-us">
+                    <div class="fix-rule-layout layouter-fadein">
+                        <span class="fix-close layouter-close"></span>
+                        <div class="fix-rule-content">
+                            <div class="fix-rule-title">
+                                <span>关注我们</span>
+                            </div>
+                            <div class="fix-rule-desc text-center">
+                                <img :src="account_qrcode_link" class="cav-qrcode">
+                                <p class="text-center">长按识别公众号</p>
+                            </div>
+                            <div class="fix-rule-btn layouter-close">关闭</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="fix fix-my-qrcode">
+                <div class="fix-layouter" data-layout-router-name="/my-qrcode">
+                    <div class="fix-rule-layout layouter-fadein">
+                        <span class="fix-close layouter-close"></span>
+                        <div class="fix-rule-content">
+                            <div class="fix-rule-title">
+                                <span>我的活动二维码</span>
+                            </div>
+                            <div class="fix-rule-desc text-center">
+                                <img :src="my_qrcode" class="cav-qrcode">
+                                <p class="text-center">扫码进入我的活动</p>
+                            </div>
+                            <div class="fix-rule-btn layouter-close">关闭</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="fix fix-export">
+                <div class="fix-layouter" data-layout-router-name="/export">
+                    <div class="fix-rule-layout layouter-fadein">
+                        <span class="fix-close layouter-close"></span>
+                        <div class="fix-rule-content">
+                            <div class="fix-rule-title">
+                                <span>报名名单</span>
+                            </div>
+                            <div class="fix-rule-desc text-center" id="export_load">
+                                <table class="rank-list" style="width:100%">
+                                </table>
+                            </div>
+                            <div class="fix-rule-btn" @click="export_register">导出报名数据</div>
+                            <div class="fix-rule-btn layouter-close">关闭</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="fix fix-menu">
+                <div class="fix-layouter" data-layout-router-name="/menu">
+                    <ul class="fix-menu-list">
+                        <li class="fix-menu-item"><a href="#/appointment" class="fix-rule-btn">我的预约信息</a></li>
+                        <li class="fix-menu-item"><a href="#/my-qrcode" class="fix-rule-btn">我的分享二维码</a></li>
+                        <li class="fix-menu-item"><a href="#/upload_cover" class="fix-rule-btn">修改展示图</a></li>
+                        <li class="fix-menu-item" v-if="cav_open == 'on'"><a href="#/cav" class="fix-rule-btn">我的核销码</a></li>
+                        <li class="fix-menu-item"><a href="#/" class="fix-rule-btn">关闭</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="fix fix-service">
+                <div class="fix-layouter" data-layout-router-name="/service">
+                    <div class="fix-rule-layout layouter-fadein">
+                        <span class="fix-close layouter-close"></span>
+                        <div class="fix-rule-content">
+                            <div class="fix-rule-title">
+                                <span>咨询客服</span>
+                            </div>
+                            <div class="fix-rule-desc" v-html="counsel"></div>
+                            <div class="fix-rule-btn layouter-close">关闭</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="fix fix-cav" v-if="!appointment_register && cav_open == 'on'">
+                <div class="fix-layouter" data-layout-router-name="/cav">
+                    <div class="fix-rule-layout layouter-fadein">
+                        <span class="fix-close layouter-close"></span>
+                        <div class="fix-rule-content">
+                            <div class="fix-rule-title">
+                                <span>我的核销码</span>
+                            </div>
+                            <div class="fix-rule-desc text-center">
+                                <img :src="cav_qrcode_link" class="cav-qrcode">
+                                <p class="text-center">使用微信扫一扫进行核销</p>
+                                <p class="text-center" v-if="cav_on_give_gift > 0">注意：活动已设置核销后不能再次接收送礼</p>
+                                <p class="text-center" v-if="register_cav_times > 0">(已核销)</p>
+                            </div>
+                            <div class="fix-rule-btn layouter-close">关闭</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="fix fix-appointment">
+                <div class="fix-layouter" data-layout-router-name="/appointment">
+                    <div class="fix-rule-layout layouter-fadein">
+                        <span class="fix-close layouter-close"></span>
+                        <div class="fix-rule-content">
+                            <div class="fix-appointment-title clearfix">
+                                <div class="appointment-cover">
+                                    <img :src="cover">
+                                </div>
+                                <span class="appointment-desc">
+                                    <span class="appointment-tip">已获取福袋</span>
+                                    <br>
+                                    <span v-html="reward_info"></span>
+                                    <br><br>
+                                    <span>市场价：<span class="appointment-price-highlight">{{ amount }}元</span></span>
+                                </span>
+                            </div>
+                            <div class="fix-appointment-desc">
+                                
+                                <form method="POST" action="javascript:;" class="form-horizontal" id="form" @submit="submit_register" style="padding-top:1rem">
+                                    <input type="hidden" name="s" :value="s">
+                                    <div class="form-group" v-for="j in jim">
+                                        <label class="col-xs-4 control-label text-center" v-html="j.name"></label>
+                                        <div class="col-xs-8" v-if="appointment_register">
+                                            <template v-if="j.type == 'text'">
+                                                <input type="text" :name="j.name|encodeUnicode" class="form-control" :placeholder="j.placeholder" v-model="j.value">
+                                            </template>
+                                            <template v-if="j.type == 'mobile'">
+                                                <input type="tel" :name="j.name|encodeUnicode" class="form-control" :placeholder="j.placeholder" v-model="j.value">
+                                            </template>
+                                            <template v-if="j.type == 'date'">
+                                                <input type="text" :name="j.name|encodeUnicode" class="picker-date form-control" v-model="j.value" :placeholder="j.placeholder" readonly @click="picker_date">
+                                            </template>
+                                        </div>
+                                        <div class="col-xs-8" v-else>
+                                            <input type="text" class="form-control" v-model="j.value" disabled>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" v-if="appointment_register">
+                                        <div class="col-xs-4">
+                                            <button type="button" class="btn btn-block fix-appointment-btn layouter-close" >取消</button>
+                                        </div>
+                                        <div class="col-xs-8">
+                                            <button type="submit" class="btn btn-block fix-appointment-btn" ref="submit_register_btn"><b>立即预约</b></button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="fix-layouter" data-layout-router-name="/appointment_over">
+                    <div class="fix-rule-layout layouter-fadein">
+                        <span class="fix-close layouter-close"></span>
+                        <div class="fix-rule-content">
+                            <div class="fix-overlay">您预约过，赶快分享给朋友吧！</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="fix-layouter" data-layout-router-name="/redirect_my">
+                    <div class="fix-rule-layout layouter-fadein">
+                        <span class="fix-close layouter-close"></span>
+                        <div class="fix-rule-content">
+                            <div class="fix-overlay"><a :href="my_url" class="btn fix-appointment-btn">您已报名，点击跳转到自己的活动主页</a></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="fix fix-upload-cover">
+                <div class="fix-layouter" data-layout-router-name="/upload_cover">
+                    <div class="fix-rule-layout layouter-fadein">
+                        <span class="fix-close layouter-close" v-if="!appointment_register"></span>
+                        <div class="fix-rule-content">
+                            <form method="POST" action="javascript:;" class="form-horizontal" id="form" @submit="submit_save_upload">
+                                <div class="fix-upload-cover-desc">
+                                    <input type="hidden" name="s" :value="s">
+                                    <div class="form-group">
+                                        <div class="col-xs-12 upload-preview" v-for="u in uploads_preview">
+                                            <img :src="u.url" class="upload-cover-image">
+                                            <span class="upload-remove" @click="remove_upload(u)">移除这张图片</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group clearfix">
+                                    <div class="col-xs-12">
+                                        <label class="upload-cover-item" v-if="upload_loading == true" style="color:#ccc">
+                                            上传中，请稍后...
+                                        </label>
+                                        <label class="upload-cover-item" v-else>
+                                            上传展示图
+                                            <input type="file" style="display:none" @change="upload">
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group clearfix">
+                                    <template v-if="show_submit_close_button">
+                                        <div class="col-xs-6">
+                                            <button type="submit" v-if="save_loading" disabled class="btn btn-block fix-appointment-btn"><b>正在保存，请稍后...</b></button>
+                                            <button type="submit" v-else class="btn btn-block fix-appointment-btn" ref="submit_cover_btn"><b>保存</b></button>
+                                        </div>
+                                        <div class="col-xs-6">
+                                            <a href="#/" class="btn btn-block"><b>关闭</b></a>
+                                        </div>
+                                    </template>
+                                    <template v-else>
+                                        <div class="col-xs-12">
+                                            <button type="submit" v-if="save_loading" disabled class="btn btn-block fix-appointment-btn"><b>正在保存，请稍后...</b></button>
+                                            <button type="submit" v-else class="btn btn-block fix-appointment-btn" ref="submit_cover_btn"><b>开始活动</b></button>
+                                        </div>
+                                    </template>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="fix fix-gift">
+                <div class="fix-layouter" data-layout-router-name="/gift">
+                    <div class="fix-rule-layout layouter-fadein">
+                        <span class="fix-close layouter-close"></span>
+                        <div class="fix-rule-content">
+                            <form method="POST" action="javascript:;" @submit="rewardto_gift">
+                                <div class="fix-rule-desc fix-no-border" id="fix_gifts">
+                                    <input type="hidden" name="g" v-model="g">
+                                    <label class="gift-item col-xs-3" v-for="(gift, index) in gifts">
+                                        <input type="radio" name="gift_id" class="gift-control" :value="gift.ident" :checked="index == 0">
+                                        <div class="gift-item-show">
+                                            <div class="gift-item-main">
+                                                <p class="gift-item-cover"><span><img v-lazy="gift.cover"></span></p>
+                                                <p class="gift-intro gift-item-name">{{ gift.name }}</p>
+                                                <p class="gift-intro"><b><i>{{ gift.amount | amount_text }}</i></b></p>
+                                                <p class="gift-intro gift-item-name"><b><i>可得{{ gift.score }}个赞</i></b></p>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div class="clearfix">
+                                    <div class="float-left">
+                                        <div class="input-inc">
+                                            <button class="btn" type="button" data-step="-1">-</button><input type="text" class="text-center" name="num" readonly value="1"><button class="btn" type="button" data-step="1">+</button>
+                                        </div>
+                                    </div>
+                                    <div class="float-right">
+                                        <button type="submit" class="btn fix-appointment-btn" ref="fix_appointment_btn" v-if="can_give_gift">赠送礼物</button>
+                                        <button type="button" class="btn fix-appointment-btn" ref="fix_appointment_btn" v-else disabled>已关闭接收礼物</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    <script src="{__LIB__}/require/require.min.js" data-main="{__PUBLIC__}/app/default/script"></script>
 </body>
 
 </html>

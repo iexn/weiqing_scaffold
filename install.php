@@ -4,6 +4,6 @@
 // ----------------------------
 
 define('MROOT', __DIR__);
-include MROOT . '/wsysphp/library/Db.php';
+include MROOT . '/wsysphp/library/Db.class.php';
 // 保证同级文件夹内包含db.json文件
 \wsys\Db::sync();

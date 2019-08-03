@@ -15,6 +15,11 @@ class CommonController extends Controller
 
     }
 
+    protected function getLogicClass($name)
+    {
+        return '\\wsys\\logic\\'.$name.'Logic';
+    }
+
     public function pay($w, $get, $post) 
     {
         $OrderLogic = new OrderLogic;

@@ -56,8 +56,9 @@ function G($start,$end='',$dec=4) {
  * 获取附加功能类文件，需要自己实例其中的类
  * $class 为调用文件路径，以vendor目录开始，比如：wxpay/Transfers，不需要添加后缀.php
  */
-function vendor($class)
+function vendor($class, $base_url = '', $ext = '.php')
 {
+    $class = str_replace('.', '/', $class);
 
     static $vendor = [];
 
@@ -66,7 +67,7 @@ function vendor($class)
         return $vendor[$class];
     }
 
-    $filename = MFRAME . "/vendor/{$class}.php";
+    $filename = MFRAME . "/vendor/{$class}" . $ext;
 
     if (!file_exists($filename)) {
         throw new \Exception("{$filename}文件未找到", 1);
@@ -247,7 +248,14 @@ function purl($do, $query = [], $noredirect = true)
     unset($query['c']);
     $query['do'] = $do;
     $query['m'] = $query['m'] ?: strtolower(MNAME);
-    return murl('entry', $query, $noredirect);
+    $query['i'] = $_W['uniacid'];
+    $query['c'] = 'entry';
+    $url = $_W['siteroot'] . 'app/index.php?' . http_build_query($query);
+    if($noredirect == false) {
+        $url .= '&wxref=mp.weixin.qq.com#wechat_redirect';
+    }
+    return $url;
+    // return murl('entry', $query, $noredirect, true);
 }
 
 /**
@@ -284,6 +292,7 @@ function web2app_url($do, $params = [], $hash = '', $addr = '')
     }
 
     $scriptName = str_replace('web', 'app', $_SERVER['SCRIPT_NAME']);
+    $scriptName = '/app/index.php';
 
     if (empty($addr)) {
         $url = servername(true) . $scriptName . '?' . $p[1];
@@ -556,7 +565,12 @@ function userinfo($openid = true)
     if ($_W['fans']['openid'] == $openid) {
         return $_W['fans']['tag'] ?: false;
     }
-    return mc_fansinfo($openid)['tag'] ?: false;
+    static $user = [];
+    if(!empty($user[$openid])) {
+        return $user[$openid];
+    }
+    $user[$openid] = mc_fansinfo($openid)['tag'];
+    return $user[$openid] ?: false;
 }
 
 /**
@@ -663,7 +677,7 @@ function getExcel($fileName, $headname, $headArr, $data)
     }
 
     // 修改文字编码
-    $filename = iconv("utf-8", "gb2312", $filename);
+    $fileName = iconv("utf-8", "gb2312", $fileName);
     // $sheetname = iconv("utf-8", "gb2312", $sheetname);
 
     //重命名表
@@ -1362,4 +1376,98 @@ function unicodeDecode($unicode_str){
     $arr = json_decode($json,true);
     if(empty($arr)) return '';
     return $arr['str'];
+}
+
+/**
+ * 微信支付，返回错误提示字符串或支付参数数组
+ * $use_payconfig = 'in' 收款  'out' 发放
+ */
+function wechat_pay($order_sn, $use_payconfig = false)
+{
+    \vendor('wechat.Pay');
+
+    // 读取使用的自定义支付配置
+    $config = [];
+    switch($use_payconfig) {
+        case 'in':
+            $pay = getConfig('pay');
+            if(!empty($pay)) {
+                $pay = json_decode($pay, true);
+            } else {
+                break;
+            }
+            if($pay['in_open'] != 'on') {
+                break;
+            }
+            $config = [
+                'appid' => $pay['in_appid'],
+                'signkey' => $pay['in_signkey'],
+                'mchid' => $pay['in_mchid'],
+            ];
+        break;
+    }
+
+    $Pay = new \wsys\wechat\Pay('\\wsys\\model\\OrderModel', $config);
+    $pay_signs = $Pay->unifiedOrder($order_sn);
+    
+    if($pay_signs === false) {
+        return $Pay->getError();
+    }
+    return $pay_signs;
+}
+
+
+/**
+ * 判断是否为微信端
+ */
+function is_wechat()
+{
+    return strpos($_SERVER['HTTP_USER_AGENT'], 'MicroMessenger') != false;
+}
+
+function wechat_warning_page($warning_string, $title)
+{
+	$html = '<!DOCTYPE html>
+		<html lang="en">
+			<head><title>'.$title.'</title><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0"><link rel="stylesheet" type="text/css" href="https://res.wx.qq.com/open/libs/weui/0.4.1/weui.css"></head>
+			<body><div class="weui_msg"><div class="weui_icon_area"><i class="weui_icon_info weui_icon_msg"></i></div><div class="weui_text_area"><h4 class="weui_msg_title">'.$warning_string.'</h4></div></div></body>';
+	echo $html;
+	exit;
+}
+
+/**
+ * 获取公众号二维码
+ */
+function account_qrcode($scene_str)
+{
+    load()->classs('weixin.account');
+    $Weixin = new \WeixinAccount;
+    $barCodeCreateDisposable = $Weixin->barCodeCreateDisposable([
+        'expire_seconds' => 300,
+        'action_name' => 'QR_STR_SCENE',
+        'action_info' => [
+            'scene' => [
+                'scene_id' => '7',
+                'scene_str' => MNAME . '_' . $scene_str
+            ]
+        ]
+    ]);
+    
+    $account_qrcode_link = '';
+    if(!empty($barCodeCreateDisposable['ticket'])) {
+        $account_qrcode_link = 'https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=' . $barCodeCreateDisposable['ticket'];
+    }
+
+    return $account_qrcode_link;
+}
+
+function upload_from_link($src)
+{
+    load()->func('file');
+    $ext = strrchr(urlencode($src),'.');
+    $path = 'szxh/szxh_vija/images/gift/' . md5($src) . $ext;
+    if(!file_read($path)) {
+        file_write($path, file_get_contents($src));
+    }
+    return $path;
 }
